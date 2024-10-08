@@ -328,3 +328,12 @@ drop index if exists vacation_user_idx;
 CREATE UNIQUE INDEX vacation_user_idx
 ON vacation USING btree (user_id);
 
+drop table if exists rmaster.admin_department cascade;
+CREATE TABLE rmaster.admin_department (
+    user_id bigint references staff(user_id),
+    chat_id bigint references department(chat_id),
+    enable_flg integer references zmtd_flag(flag_gid) default 10,
+    start_date timestamptz not null default now(),
+    update_date timestamptz not null default now(),
+	CONSTRAINT "admin_department$pk" PRIMARY KEY (chat_id, user_id)
+);

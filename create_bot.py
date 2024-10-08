@@ -13,6 +13,8 @@ storage = MemoryStorage()
 
 scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
 admins = set(int(admin_id) for admin_id in config('ADMINS').split(','))
+pg_link = config('PG_LINK')
 
 bot = Bot(token=config('BOT_TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
+

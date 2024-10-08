@@ -2,10 +2,10 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message, ReplyKeyboardRemove
 from keyboards.all_kb import main_kb, mini_kb, private_kb
-
-
+from middlewares.DataBaseMiddleware import DatabaseMiddleware
 
 start_router = Router()
+start_router.message.middleware(DatabaseMiddleware())
 
 @start_router.message(CommandStart())
 async def cmd_start(message: Message, command: CommandObject):

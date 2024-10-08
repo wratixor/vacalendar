@@ -2,29 +2,42 @@ import asyncio
 import logging
 
 from create_bot import bot, dp, scheduler, admins
-from db_utils import db_class
 from handlers.admin_menu import admin_router
 from handlers.inline_menu import inline_router
 from handlers.start import start_router
-# from work_time.time_func import send_time_msg
+from work_time.time_func import send_time_msg
 from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
-from utils import simple_https_server
 
 logger = logging.getLogger(__name__)
 
 async def set_all_comads():
-    commands = [BotCommand(command='/start', description='Запуск'),
-                BotCommand(command='/menu', description='Меню'),
-                BotCommand(command='/inline_menu', description='Мини меню')
+    commands = [BotCommand(command='/start', description='Инициализация'),
+                BotCommand(command='/help', description='Помощь'),
+                BotCommand(command='/join', description='Вступить в группу'),
+                BotCommand(command='/leave', description='Покинуть группу'),
+                BotCommand(command='/all', description='Все отпуска группы'),
+                BotCommand(command='/upcoming', description='Ближайшие отпуска группы'),
+                BotCommand(command='/cross', description='Пересечение отпусков группы'),
+                BotCommand(command='/members', description='Список участников группы'),
+                BotCommand(command='/kick', description='Исключить из группы'),
+                BotCommand(command='/readmin', description='Назначить/удалить админа'),
+                BotCommand(command='/status', description='Статус участников')
                 ]
     await bot.set_my_commands(commands)
 
 async def set_private_comads():
-    commands = [BotCommand(command='/start', description='Запуск'),
-                BotCommand(command='/who_am_i', description='Узнать о себе'),
-                BotCommand(command='/menu', description='Меню'),
-                BotCommand(command='/inline_menu', description='Мини меню')
+    commands = [BotCommand(command='/start', description='Инициализация'),
+                BotCommand(command='/help', description='Помощь'),
+                BotCommand(command='/add', description='Добавить отпуск'),
+                BotCommand(command='/account', description='Анкета'),
+                BotCommand(command='/vacation', description='Мои отпуска'),
+                BotCommand(command='/group', description='Мои группы'),
+                BotCommand(command='/gradmin', description='Управление группой'),
+                BotCommand(command='/all', description='Все отпуска моих групп'),
+                BotCommand(command='/upcoming', description='Ближайшие отпуска моих групп'),
+                BotCommand(command='/cross', description='Пересечения моих отпусков'),
+                BotCommand(command='/status', description='Статус')
                 ]
     await bot.set_my_commands(commands, BotCommandScopeAllPrivateChats())
 
@@ -47,13 +60,12 @@ async def stop_bot():
             logger.error(f'stop_bot(): {e}')
 
 async def main():
-    # scheduler.add_job(send_time_msg, 'interval', seconds=10)
-    # scheduler.start()
+    scheduler.add_job(send_time_msg, 'interval', month=1)
+    scheduler.start()
 
     dp.include_router(start_router)
     dp.include_router(inline_router)
     dp.include_router(admin_router)
-
     dp.startup.register(set_all_comads)
     dp.startup.register(set_private_comads)
 

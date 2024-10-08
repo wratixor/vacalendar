@@ -4,17 +4,32 @@ import logging
 from aiohttp import web
 import ssl
 
+
+
 logger = logging.getLogger(__name__)
 
 async def handle(request):
-    name = request.match_info.get('name', "Anonymous")
-    text = "Hello, " + name
+    project = request.match_info.get('project', "all")
+    s_host = 'https://localhost'
+    text = f'Project: {project}:'
+    match project.split():
+        case ["vacalendar"]:
+            text += '\n VaCalendar - a simple bot for planning vacations.'
+            text += '\n https://t.me/vacalendar_bot'
+        case ["all"]:
+            text += f'\n {s_host}/vacalendar'
+        case _:
+            text += '\n Not found this project'
+
+    text += f'\n\n All project: {s_host}/all'
+    text += '\n\n Donations: https://yoomoney.ru/to/4100118849397169'
     return web.Response(text=text)
+
 
 async def main():
     app = web.Application()
     app.add_routes([web.get('/', handle),
-                    web.get('/{name}', handle)])
+                    web.get('/{project}', handle)])
 
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_context.load_cert_chain('selfsigned.crt', 'selfsigned.key')
@@ -31,6 +46,7 @@ async def main():
         await exit(0)
 
 if __name__ == '__main__':
+    host = ''
     asyncio.run(main())
 
 
