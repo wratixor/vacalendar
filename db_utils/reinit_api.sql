@@ -1,266 +1,234 @@
-drop table if exists rmaster.zmtd_year cascade;
-CREATE TABLE rmaster.zmtd_year (
-	year_gid integer NOT NULL,
-	prev_year_gid integer NOT NULL,
-	next_year_gid integer NOT NULL,
-	code integer NOT NULL,
-	year_name varchar(32) not NULL,
-	year_start_date date not NULL,
-	year_end_date date not NULL,
-	CONSTRAINT "zmtd_year$pk" PRIMARY KEY (year_gid)
-);
-
-insert into rmaster.zmtd_year (year_gid, prev_year_gid, next_year_gid, code, year_name, year_start_date, year_end_date) (
-select gs as year_gid
-     , gs - 1 as prev_year_gid
-     , gs + 1 as next_year_gid
-     , gs * 10000 as code
-     , gs::text as year_name
-     , make_date(gs, 1, 1)
-     , make_date(gs, 12, 31)
-  from generate_series(2000, 2100, 1) as gs
-);
+DROP SCHEMA IF EXISTS api cascade;
+CREATE SCHEMA api AUTHORIZATION rmaster;
 
 
-drop SEQUENCE if exists rmaster.zmtd_entity_sq cascade;
-CREATE SEQUENCE rmaster.zmtd_entity_sq
-INCREMENT 1
-START 100
-MINVALUE 100
-MAXVALUE 2147483647
-CACHE 1;
+DROP FUNCTION IF EXISTS api.s_join(int8, int8);
+CREATE OR REPLACE FUNCTION api.s_join(i_user_id bigint, i_chat_id bigint)
+ RETURNS text
+ LANGUAGE plpgsql
+ VOLATILE SECURITY DEFINER COST 1
+AS $function$
+ DECLARE
+  l_check_user boolean := false;
+  l_check_chat boolean := false;
+  l_check_isset boolean := false;
+  l_check_query boolean := false;
 
-drop table if exists rmaster.zmtd_entity cascade;
-create table rmaster.zmtd_entity (
-	entity_gid integer NOT NULL DEFAULT nextval('zmtd_entity_sq'::regclass),
-	table_name varchar(64) not NULL,
-	field_name varchar(64) null,
-	description varchar(128) null,
-	CONSTRAINT "zmtd_entity$pk" PRIMARY KEY (entity_gid)
-);
+  l_user_id bigint := coalesce(i_user_id, 0::bigint);
+  l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
 
-insert into rmaster.zmtd_entity (table_name, field_name, description) values
-('zmtd_entity', null, 'self'),
-('zmtd_year', null, 'календарь года'),
-('zmtd_month', null, 'календарь месяца'),
-('zmtd_month', 'month_name_gid', 'название месяца'),
-('zmtd_date', null, 'календарь дни'),
-('zmtd_date', 'day_name_gid', 'день недели'),
-('zmtd_date', 'day_off_flg', 'будни/выходные'),
-('zmtd_date', 'holiday_flg', 'праздничный/обычный');
+ BEGIN
+  l_check_user := ((select count(1) from rmaster.staff as u where u.user_id = l_user_id) = 1);
+  l_check_chat := ((select count(1) from rmaster.department as c where c.chat_id = l_chat_id) = 1);
 
+  IF l_check_user and l_check_chat THEN
+    l_check_isset := ((select count(1) from rmaster.staff_department as uc where uc.user_id = l_user_id and uc.chat_id = l_chat_id) = 1);
+  END IF;
 
-drop SEQUENCE if exists rmaster.zmtd_flag_sq cascade;
-CREATE SEQUENCE rmaster.zmtd_flag_sq
-INCREMENT 1
-START 500
-MINVALUE 500
-MAXVALUE 2147483647
-CACHE 1;
+  IF l_check_user and l_check_chat and not l_check_isset THEN
+    insert into rmaster.staff_department (user_id, chat_id) values (l_user_id, l_chat_id);
+    l_check_query := true;
+  END IF;
 
-drop table if exists rmaster.zmtd_flag cascade;
-create table rmaster.zmtd_flag (
-	flag_gid integer NOT NULL DEFAULT nextval('zmtd_flag_sq'::regclass),
-	code integer not NULL,
-	value varchar(32) not NULL,
-	entity_gid integer references zmtd_entity(entity_gid),
-	description varchar(128) NOT NULL,
-	CONSTRAINT "zmtd_flag$pk" PRIMARY KEY (flag_gid)
-);
+  RETURN (
+    SELECT
+      case when    l_check_query then 'Успешно присоединился к группе'
+           when    l_check_isset then 'Уже есть в группе'
+           when not l_check_user then 'Неизвестный пользователь'
+           when not l_check_chat then 'Неизвестная группа'
+           else 'Не выполнено' end::text as status
+    FOR READ ONLY
+  );
+ END
+$function$
+;
 
 
-insert into rmaster.zmtd_flag (flag_gid, code, value, entity_gid, description) values (0, 0, 'err', 100, 'неверное значение');
-insert into rmaster.zmtd_flag (flag_gid, code, value, entity_gid, description) values (10, 10, 'enable', 100, 'переключатель да');
-insert into rmaster.zmtd_flag (flag_gid, code, value, entity_gid, description) values (12, 12, 'disable', 100, 'переключатель нет');
-insert into rmaster.zmtd_flag (code, value, entity_gid, description) values
-(0, 'раб', 106, 'рабочий день'),
-(1, 'вых', 106, 'выходной день'),
-(0, '-', 107, 'обычный день'),
-(1, 'прздн', 107, 'праздничный день'),
-(2, 'сокр', 107, 'предпраздничный день (сокращённый)'),
-(1, 'Пн', 105, 'понедельник'),
-(2, 'Вт', 105, 'вторник'),
-(3, 'Ср', 105, 'среда'),
-(4, 'Чт', 105, 'четверг'),
-(5, 'Пт', 105, 'пятница'),
-(6, 'Сб', 105, 'суббота'),
-(7, 'Вс', 105, 'воскресенье'),
-(1, 'Янв', 103, 'январь'),
-(2, 'Фев', 103, 'февраль'),
-(3, 'Мар', 103, 'март'),
-(4, 'Апр', 103, 'апрель'),
-(5, 'Май', 103, 'май'),
-(6, 'Июн', 103, 'июнь'),
-(7, 'Июл', 103, 'июль'),
-(8, 'Авг', 103, 'август'),
-(9, 'Сен', 103, 'сентябрь'),
-(10, 'Окт', 103, 'октябрь'),
-(11, 'Ноя', 103, 'ноябрь'),
-(12, 'Дек', 103, 'декабрь');
+DROP FUNCTION IF EXISTS api.s_aou_user(int8, text, text, text, text, text);
+CREATE OR REPLACE FUNCTION api.s_aou_user(i_user_id bigint, i_first_name text, i_last_name text, i_username text, i_upd_par text default null::text, i_upd_val text default null::text)
+ RETURNS text
+ LANGUAGE plpgsql
+ VOLATILE SECURITY DEFINER COST 1
+AS $function$
+ DECLARE
+  l_check_user boolean := false;
+  l_add_user boolean := false;
+  l_update_user boolean := false;
+  l_check_hash boolean := false;
+
+  l_user_id bigint := coalesce(i_user_id, 0::bigint);
+  l_first_name text := coalesce(i_first_name, '');
+  l_last_name text := coalesce(i_last_name, '');
+  l_username text := coalesce(i_username, '');
+  l_visible_name text;
+  l_color bytea;
+  l_upd_par text := lower(coalesce(i_upd_par, ''));
+  l_upd_val text := coalesce(i_upd_val, '');
+
+  l_hash text := l_first_name||l_last_name||l_username;
+
+ BEGIN
+  l_check_user := ((select count(1) from rmaster.staff as u where u.user_id = l_user_id) = 1);
+  IF not l_check_user THEN
+    l_visible_name := case when l_last_name <> '' then l_first_name||' '||l_last_name else l_first_name end;
+    insert into rmaster.staff (user_id, first_name, last_name, username, visible_name)
+                       values (l_user_id, l_first_name, l_last_name, l_username, l_visible_name);
+    l_add_user := true;
+  ELSE
+    l_check_hash := ((select first_name||last_name||username as hash from rmaster.staff as u where u.user_id = l_user_id) = l_hash);
+    IF not l_check_hash THEN
+      update rmaster.staff set first_name = l_first_name, last_name = l_last_name, username = l_username, update_date = now() where user_id = l_user_id;
+      l_update_user := true;
+    END IF;
+  END IF;
+
+  IF l_check_user and l_upd_par = 'color' then
+    l_color := case when l_upd_val <> '' then l_upd_val
+                    else ((('\x'::text || to_hex(trunc(random() * 200::double precision)::integer % 200 + 50))
+                                       || to_hex(trunc(random() * 200::double precision)::integer % 200 + 50))
+                                       || to_hex(trunc(random() * 200::double precision)::integer % 200 + 50))
+                    end::bytea;
+    update rmaster.staff set color = l_color, update_date = now() where user_id = l_user_id;
+    l_update_user := true;
+  END IF;
+
+  IF l_check_user and l_upd_par = 'name' then
+    l_visible_name := case when l_upd_val <> '' then l_upd_val
+                           else case when l_last_name <> '' then l_first_name||' '||l_last_name else l_first_name end
+                           end::text;
+    update rmaster.staff set visible_name = l_visible_name, update_date = now() where user_id = l_user_id;
+    l_update_user := true;
+  END IF;
+
+  RETURN (
+    SELECT
+      case when l_update_user then 'Успешно обновлено'
+           when l_add_user then 'Пользователь добавлен'
+           when l_check_user and l_check_hash then 'Обновление не требуется'
+           else 'Не выполнено' end::text as status
+    FOR READ ONLY
+  );
+ END
+$function$
+;
 
 
-drop table if exists rmaster.zmtd_month cascade;
-CREATE TABLE rmaster.zmtd_month (
-	month_gid integer NOT NULL,
-	prev_month_gid integer NOT NULL,
-	next_month_gid integer NOT NULL,
-	code integer NOT NULL,
-	month_num_in_year int2 NOT NULL,
-	month_name_gid integer references zmtd_flag(flag_gid),
-	month_start_date date not NULL,
-	month_end_date date not NULL,
-	quarter_num_in_year int2 not NULL,
-	year_gid integer references zmtd_year(year_gid),
-	year_start_date date not NULL,
-	year_end_date date not NULL,
-	CONSTRAINT "zmtd_month$pk" PRIMARY KEY (month_gid)
-);
+DROP FUNCTION IF EXISTS api.s_aou_group(int8, text, text);
+CREATE OR REPLACE FUNCTION api.s_aou_group(i_chat_id bigint, i_chat_type text, i_chat_title text)
+ RETURNS text
+ LANGUAGE plpgsql
+ VOLATILE SECURITY DEFINER COST 1
+AS $function$
+ DECLARE
+  l_check_chat boolean := false;
+  l_add_chat boolean := false;
+  l_update_chat boolean := false;
+  l_check_hash boolean := false;
 
-insert into rmaster.zmtd_month (month_gid, prev_month_gid, next_month_gid, code, month_num_in_year, month_name_gid
-                              , month_start_date, month_end_date, quarter_num_in_year, year_gid, year_start_date, year_end_date) (
-select to_char(gs, 'YYYYMM')::integer as month_gid
-     , to_char(gs - interval '1 month', 'YYYYMM')::integer as prev_month_gid
-     , to_char(gs + interval '1 month', 'YYYYMM')::integer as next_month_gid
-     , to_char(gs, 'YYYYMM')::integer * 100 as code
-     , extract(month from gs)::int2 as month_num_in_year
-     , zm.flag_gid as month_name_gid
-     , gs::date as month_start_date
-     , (gs + interval '1 month -1 day')::date as month_end_date
-     , extract(quarter from gs)::int2 as quarter_num_in_year
-     , y.year_gid as year_gid
-     , y.year_start_date as year_start_date
-     , y. year_end_date as year_end_date
-  from generate_series('2000-01-01', '2100-12-31', interval '1 month') as gs
-  join zmtd_year as y on gs between y.year_start_date and y.year_end_date
-  join zmtd_flag as zm on extract(month from gs) = zm.code and zm.entity_gid = 103
-);
+  l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
+  l_chat_type text := coalesce(i_chat_type, '');
+  l_chat_title text := coalesce(i_chat_title, '');
 
+  l_hash text := l_chat_type||l_chat_title;
 
-drop table if exists rmaster.zmtd_date cascade;
-CREATE TABLE rmaster.zmtd_date (
-    date_gid date NOT NULL,
-    prev_date_gid date not null,
-    next_date_gid date not null,
-    code integer NOT NULL,
-    day_num_in_month int2 NOT NULL,
-    day_num_in_week int2 NOT NULL,
-    day_name_gid integer references zmtd_flag(flag_gid),
-    day_off_flg integer references zmtd_flag(flag_gid),
-    holiday_flg integer references zmtd_flag(flag_gid),
-    week_num_in_year int2 NOT NULL,
-	month_gid integer references zmtd_month(month_gid),
-	month_num_in_year int2 NOT NULL,
-	month_start_date date not NULL,
-	month_end_date date not NULL,
-	quarter_num_in_year int2 not NULL,
-    iso_year integer NOT NULL,
-	year_gid integer references zmtd_year(year_gid),
-	year_start_date date not NULL,
-	year_end_date date not NULL,
-	CONSTRAINT "zmtd_date$pk" PRIMARY KEY (date_gid)
-);
+ BEGIN
+  l_check_chat := ((select count(1) from rmaster.department as c where c.chat_id = l_chat_id) = 1);
+  IF not l_check_chat THEN
+    insert into rmaster.department (chat_id, chat_type, chat_title)
+                       values (l_chat_id, l_chat_type, l_chat_title);
+    l_add_chat := true;
+  ELSE
+    l_check_hash := ((select chat_type||chat_title as hash from rmaster.department as c where c.chat_id = l_chat_id) = l_hash);
+    IF not l_check_hash THEN
+      update rmaster.department set chat_type = l_chat_type, chat_title = l_chat_title, update_date = now() where chat_id = l_chat_id;
+      l_update_chat := true;
+    END IF;
+  END IF;
+
+  RETURN (
+    SELECT
+      case when l_update_chat then 'Успешно обновлено'
+           when l_add_chat then 'Группа добавлена'
+           when l_check_chat and l_check_hash then 'Обновление не требуется'
+           else 'Не выполнено' end::text as status
+    FOR READ ONLY
+  );
+ END
+$function$
+;
 
 
-insert into rmaster.zmtd_date (date_gid, prev_date_gid, next_date_gid, code, day_num_in_month, day_num_in_week, day_name_gid
-                              , day_off_flg, holiday_flg, week_num_in_year, month_gid, month_num_in_year, month_start_date
-                              , month_end_date, quarter_num_in_year, iso_year, year_gid, year_start_date, year_end_date) (
-select gs::date as date_gid
-     , (gs - interval '1 day')::date as prev_date_gid
-     , (gs + interval '1 day')::date as next_date_gid
-     , to_char(gs, 'YYYYMMdd')::integer as code
-     , extract(day from gs)::int2 as day_num_in_month
-     , extract(isodow from gs)::int2 as day_num_in_week
-     , zdn.flag_gid as day_name_gid
-     , case when extract(isodow from gs) in (6, 7) then 501 else 500 end as day_off_flg
-     , 502 as holiday_flg
-     , extract(week from gs)::int2 as week_num_in_year
-     , m.month_gid as month_gid
-     , m.month_num_in_year as month_num_in_year
-     , m.month_start_date as month_start_date
-     , m.month_end_date as month_end_date
-     , m.quarter_num_in_year as quarter_num_in_year
-     , extract(isoyear from gs)::integer as iso_year
-     , y.year_gid as year_gid
-     , y.year_start_date as year_start_date
-     , y.year_end_date as year_end_date
-  from generate_series('2000-01-01', '2100-12-31', interval '1 day') as gs
-  join zmtd_year as y on gs between y.year_start_date and y.year_end_date
-  join zmtd_month as m on gs between m.month_start_date and m.month_end_date
-  join zmtd_flag as zdn on extract(isodow from gs) = zdn.code and zdn.entity_gid = 105
-);
+DROP FUNCTION IF EXISTS api.s_aou_admin(int8, int8, text, text);
+CREATE OR REPLACE FUNCTION api.s_aou_admin(i_admin_id bigint, i_chat_id bigint, i_username text, i_oper text default null::text)
+ RETURNS text
+ LANGUAGE plpgsql
+ VOLATILE SECURITY DEFINER COST 1
+AS $function$
+ DECLARE
+  l_check_chat boolean := false;
+  l_check_admin boolean := false;
+  l_check_user boolean := false;
+  l_check_flg int4 := 0;
+  l_enabled boolean := false;
+  l_disabled boolean := false;
 
 
-drop table if exists rmaster.staff cascade;
-CREATE TABLE rmaster.staff (
-    user_id bigint NOT NULL,
-    first_name varchar(64) not null,
-    last_name varchar(64) null,
-    username varchar(64) null,
-    visible_name varchar(64) not null,
-    color bytea not null default ('\x'||to_hex((TRUNC(RANDOM() * 200)::int % 200) + 50)||to_hex((TRUNC(RANDOM() * 200)::int % 200) + 50)||to_hex((TRUNC(RANDOM() * 200)::int % 200) + 50))::bytea,
-    start_date timestamptz not null default now(),
-    update_date timestamptz not null default now(),
-	CONSTRAINT "staff$pk" PRIMARY KEY (user_id)
-);
+  l_admin_id bigint := coalesce(i_admin_id, 0::bigint);
+  l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
+  l_user_id bigint;
+  l_username := coalesce(i_user_id, '');
+  l_oper text := lower(coalesce(i_oper, '');
 
-drop table if exists rmaster.department cascade;
-CREATE TABLE rmaster.department (
-    chat_id bigint NOT NULL,
-    chat_type varchar(64) not null,
-    chat_title varchar(64) null,
-    start_date timestamptz not null default now(),
-    update_date timestamptz not null default now(),
-	CONSTRAINT "department$pk" PRIMARY KEY (chat_id)
-);
+ BEGIN
+  l_user_id := (select user_id from rmaster.staff as u where u.username = l_username limit 1);
+  l_check_chat := ((select count(1) from rmaster.department as c where c.chat_id = l_chat_id) = 1);
+  l_check_user := (l_user_id is not null);
+  l_check_admin := (l_admin_id = l_user_id) or ((select count(1)
+                                                   from rmaster.admin_department as ad
+                                                  where ad.chat_id = l_chat_id
+                                                    and ad.user_id = l_admin_id
+                                                    and enable_flg = 10) = 1);
+  l_check_flg := (select ad.enable_flg from rmaster.admin_department as ad where ad.user_id = l_user_id and ad.chat_id = l_chat_id limit 1);
 
-drop table if exists rmaster.staff_department cascade;
-CREATE TABLE rmaster.staff_department (
-    user_id bigint references staff(user_id),
-    chat_id bigint references department(chat_id),
-    enable_flg integer references zmtd_flag(flag_gid) default 10,
-    start_date timestamptz not null default now(),
-    update_date timestamptz not null default now(),
-	CONSTRAINT "staff_department$pk" PRIMARY KEY (chat_id, user_id)
-);
+  IF l_check_chat and l_check_user and l_check_admin THEN
+    IF l_oper = 'add' THEN
+      IF l_check_flg is null THEN
+        insert into rmaster.admin_department (user_id, chat_id) values (l_user_id, l_chat_id);
+      ELSEIF l_check_flg = 12 THEN
+        update rmaster.admin_department set enable_flg = 10, update_date = now() where user_id = l_user_id and chat_id = l_chat_id;
+      END IF;
+      l_enabled := true;
+    END IF;
+    IF l_oper = 'del' and l_check_flg = 10 THEN
+        update rmaster.admin_department set enable_flg = 12, update_date = now() where user_id = l_user_id and chat_id = l_chat_id;
+        l_disabled := true;
+    END IF;
+    IF l_oper in ('swap', '') THEN
+        IF l_check_flg = 12 THEN
+          update rmaster.admin_department set enable_flg = 10, update_date = now() where user_id = l_user_id and chat_id = l_chat_id;
+          l_enabled := true;
+        ELSEIF l_check_flg = 10 THEN
+          update rmaster.admin_department set enable_flg = 12, update_date = now() where user_id = l_user_id and chat_id = l_chat_id;
+          l_disabled := true;
+        ELSEIF l_check_flg is null THEN
+          insert into rmaster.admin_department (user_id, chat_id) values (l_user_id, l_chat_id);
+          l_enabled := true;
+        END IF;
+    END IF;
+  END IF;
 
-drop SEQUENCE if exists rmaster.vacation_sq cascade;
-CREATE SEQUENCE rmaster.vacation_sq
-INCREMENT 1
-START 100
-MINVALUE 100
-MAXVALUE 9223372036854775807
-CACHE 1;
-
-drop table if exists rmaster.vacation cascade;
-CREATE TABLE rmaster.vacation (
-    vacation_gid bigint NOT NULL DEFAULT nextval('vacation_sq'::regclass),
-    user_id bigint references staff(user_id),
-    date_begin date not null,
-    date_end date not null,
-    enable_flg integer references zmtd_flag(flag_gid) default 10,
-    public_flg integer references zmtd_flag(flag_gid) default 10,
-    start_date timestamptz not null default now(),
-    update_date timestamptz not null default now(),
-    CONSTRAINT "vacation$pk" PRIMARY KEY (vacation_gid)
-);
-
-drop index if exists vacation_date_idx;
-CREATE UNIQUE INDEX vacation_date_idx
-ON vacation USING btree (date_begin, date_end);
-
-drop index if exists vacation_user_idx;
-CREATE UNIQUE INDEX vacation_user_idx
-ON vacation USING btree (user_id);
-
-
-drop table if exists rmaster.admin_department cascade;
-CREATE TABLE rmaster.admin_department (
-    user_id bigint references staff(user_id),
-    chat_id bigint references department(chat_id),
-    enable_flg integer references zmtd_flag(flag_gid) default 10,
-    start_date timestamptz not null default now(),
-    update_date timestamptz not null default now(),
-	CONSTRAINT "admin_department$pk" PRIMARY KEY (chat_id, user_id)
-);
+  RETURN (
+    SELECT
+      case when l_enabled then l_username||' добавлены права администратора'
+           when l_disabled then 'У '||l_username||' отозваны права администратора'
+           when not l_check_chat then 'Неизвестный чат'
+           when not l_check_user then 'Неизвестный пользователь'
+           when not l_check_admin then 'Недостаточно прав'
+           else 'Не выполнено' end::text as status
+    FOR READ ONLY
+  );
+ END
+$function$
+;
 
 

@@ -1,3 +1,7 @@
+DROP SCHEMA if exists rmaster cascade;
+CREATE SCHEMA rmaster AUTHORIZATION rmaster;
+
+
 drop table if exists rmaster.zmtd_year cascade;
 CREATE TABLE rmaster.zmtd_year (
 	year_gid integer NOT NULL,
@@ -208,7 +212,6 @@ CREATE TABLE rmaster.department (
     chat_id bigint NOT NULL,
     chat_type varchar(64) not null,
     chat_title varchar(64) null,
-    visible_name varchar(64) not null,
     start_date timestamptz not null default now(),
     update_date timestamptz not null default now(),
 	CONSTRAINT "department$pk" PRIMARY KEY (chat_id)
@@ -263,3 +266,5 @@ CREATE TABLE rmaster.admin_department (
     update_date timestamptz not null default now(),
 	CONSTRAINT "admin_department$pk" PRIMARY KEY (chat_id, user_id)
 );
+
+
