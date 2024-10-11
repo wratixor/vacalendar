@@ -175,9 +175,9 @@ AS $function$
 
   l_admin_id bigint := coalesce(i_admin_id, 0::bigint);
   l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
-  l_user_id bigint;
-  l_username := coalesce(i_user_id, '');
-  l_oper text := lower(coalesce(i_oper, '');
+  l_user_id bigint := 0;
+  l_username text := coalesce(i_user_id, '');
+  l_oper text := lower(coalesce(i_oper, ''));
 
  BEGIN
   l_user_id := (select user_id from rmaster.staff as u where u.username = l_username limit 1);
