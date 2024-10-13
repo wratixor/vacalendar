@@ -348,3 +348,58 @@ AS $function$
 $function$
 ;
 
+
+DROP TYPE IF EXISTS api.t_status;
+CREATE TYPE api.t_status AS (
+	chat_name text,
+	user_name text,
+	user_color bytea,
+	user_join text,
+	user_admin text,
+	year_vacation_count int4,
+	now_vacation_count int4);
+
+
+DROP FUNCTION IF EXISTS api.r_status(int8, int8);
+CREATE OR REPLACE FUNCTION api.r_status(i_chat_id bigint default null::bigint, i_user_id bigint default null::bigint)
+ RETURNS SETOF api.t_status
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER COST 1 ROWS 20
+AS $function$
+DECLARE
+
+  l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
+  l_user_id bigint := coalesce(i_user_id, 0::bigint);
+
+BEGIN
+  IF l_chat_id <> 0 or l_user_id <> 0 THEN
+    RETURN QUERY
+    select c.chat_title as chat_name
+    , u.visible_name as user_name
+    , u.color as user_color
+    , ucf.value as user_join
+    , case when adf.value is not null then adf.value else 'disable' end as user_admin
+    , count(vy.vacation_gid) as year_vacation_count
+    , count(vn.vacation_gid) as now_vacation_count
+    from rmaster.staff_department as uc
+    join rmaster.zmtd_flag as ucf on uc.enable_flg = ucf.flag_gid
+    join rmaster.department as c on uc.chat_id = c.chat_id
+    join rmaster.staff as u on uc.user_id = u.user_id
+    left join rmaster.admin_department as ad on ad.user_id = uc.user_id and ad.chat_id = uc.chat_id
+    left join rmaster.zmtd_flag as adf on ad.enable_flg = adf.flag_gid
+    join rmaster.zmtd_year as zy on current_date between zy.year_start_date and zy.year_end_date
+    left join rmaster.vacation vy on vy.date_begin <= zy.year_end_date and vy.date_end >= zy.year_start_date
+                                 and vy.user_id = uc.user_id and vy.enable_flg = 10
+    left join rmaster.vacation vn on current_date between vn.date_begin and vn.date_end
+                                 and vn.user_id = uc.user_id and vn.enable_flg = 10
+    where (uc.user_id = l_user_id or l_user_id = 0)
+       or (uc.chat_id = l_chat_id or l_chat_id = 0)
+    group by c.chat_title, u.visible_name, u.color, ucf.value, adf.value
+    FOR READ ONLY;
+  END IF;
+RETURN;
+END
+$function$
+;
+
+

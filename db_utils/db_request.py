@@ -71,3 +71,4 @@ async def aou_admin(pool: asyncpg.pool.Pool, user_id: int, group_id: int, userna
             logger.error(result)
     return result
 
+# api.r_status(i_chat_id bigint default null::bigint, i_user_id bigint default null::bigint)

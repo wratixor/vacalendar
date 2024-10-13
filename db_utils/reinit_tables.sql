@@ -242,7 +242,6 @@ CREATE TABLE rmaster.vacation (
     date_begin date not null,
     date_end date not null,
     enable_flg integer references zmtd_flag(flag_gid) default 10,
-    public_flg integer references zmtd_flag(flag_gid) default 10,
     start_date timestamptz not null default now(),
     update_date timestamptz not null default now(),
     CONSTRAINT "vacation$pk" PRIMARY KEY (vacation_gid)

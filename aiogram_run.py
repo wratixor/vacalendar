@@ -19,7 +19,6 @@ async def set_all_comads():
                 BotCommand(command='/all', description='Все отпуска группы'),
                 BotCommand(command='/upcoming', description='Ближайшие отпуска группы'),
                 BotCommand(command='/cross', description='Пересечение отпусков группы'),
-                BotCommand(command='/members', description='Список участников группы'),
                 BotCommand(command='/kick', description='Исключить из группы'),
                 BotCommand(command='/readmin', description='Назначить/удалить админа'),
                 BotCommand(command='/status', description='Статус участников')
@@ -32,8 +31,6 @@ async def set_private_comads():
                 BotCommand(command='/add', description='Добавить отпуск'),
                 BotCommand(command='/account', description='Анкета'),
                 BotCommand(command='/vacation', description='Мои отпуска'),
-                BotCommand(command='/group', description='Мои группы'),
-                BotCommand(command='/gradmin', description='Управление группой'),
                 BotCommand(command='/all', description='Все отпуска моих групп'),
                 BotCommand(command='/upcoming', description='Ближайшие отпуска моих групп'),
                 BotCommand(command='/cross', description='Пересечения моих отпусков'),
