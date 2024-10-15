@@ -207,6 +207,7 @@ AS $function$
   l_user_id bigint;
   l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
   l_username text := coalesce(i_username, '');
+  l_admin_id bigint :=  coalesce(i_admin_id, 0::bigint);
 
  BEGIN
   l_user_id := (select user_id from rmaster.staff as u where u.username = l_username limit 1);
@@ -261,7 +262,7 @@ AS $function$
   l_user_id bigint;
   l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
   l_username text := coalesce(i_username, '');
-
+  l_admin_id bigint :=  coalesce(i_admin_id, 0::bigint);
   l_del_admin text;
 
  BEGIN
@@ -317,6 +318,7 @@ AS $function$
   l_user_id bigint;
   l_chat_id bigint := coalesce(i_chat_id, 0::bigint);
   l_username text := coalesce(i_username, '');
+  l_admin_id bigint :=  coalesce(i_admin_id, 0::bigint);
 
  BEGIN
   l_user_id := (select user_id from rmaster.staff as u where u.username = l_username limit 1);
@@ -375,14 +377,14 @@ DECLARE
 BEGIN
   IF l_chat_id <> 0 or l_user_id <> 0 THEN
     RETURN QUERY
-    select c.chat_title as chat_name
-    , u.visible_name as visible_name
-    , u.username as username
-    , u.color as user_color
-    , ucf.value as user_join
-    , case when adf.value is not null then adf.value else 'disable' end as user_admin
-    , count(vy.vacation_gid) as year_vacation_count
-    , count(vn.vacation_gid) as now_vacation_count
+    select c.chat_title::text as chat_name
+    , u.visible_name::text as visible_name
+    , u.username::text as username
+    , u.color::bytea as user_color
+    , ucf.value::text as user_join
+    , case when adf.value is not null then adf.value else 'disable' end::text as user_admin
+    , count(vy.vacation_gid)::int4 as year_vacation_count
+    , count(vn.vacation_gid)::int4 as now_vacation_count
     from rmaster.staff_department as uc
     join rmaster.zmtd_flag as ucf on uc.enable_flg = ucf.flag_gid
     join rmaster.department as c on uc.chat_id = c.chat_id
@@ -396,7 +398,7 @@ BEGIN
                                  and vn.user_id = uc.user_id and vn.enable_flg = 10
     where (uc.user_id = l_user_id or l_user_id = 0)
       and (uc.chat_id = l_chat_id or l_chat_id = 0)
-    group by c.chat_title, u.visible_name, u.color, ucf.value, adf.value
+    group by c.chat_title, u.visible_name, u.username, u.color, ucf.value, adf.value
     order by c.chat_title, u.visible_name
     FOR READ ONLY;
   END IF;
@@ -437,13 +439,14 @@ BEGIN
       where (uc.user_id = l_user_id or l_user_id = 0)
         and (uc.chat_id = l_chat_id or l_chat_id = 0)
         and uc.enable_flg = 10
+      group by uc.chat_id
     )
-    select c.chat_title as chat_name
-    , u.visible_name as visible_name
-    , u.username as username
-    , u.color as user_color
-    , v.date_begin as date_begin
-    , v.date_end as date_end
+    select c.chat_title::text as chat_name
+    , u.visible_name::text as visible_name
+    , u.username::text as username
+    , u.color::bytea as user_color
+    , v.date_begin::date as date_begin
+    , v.date_end::date as date_end
     from all_chat as a
     join rmaster.staff_department as uc on uc.chat_id = a.chat_id and uc.enable_flg = 10
     join rmaster.staff as u on u.user_id = uc.user_id
@@ -497,22 +500,23 @@ BEGIN
       where (uc.user_id = l_user_id or l_user_id = 0)
         and (uc.chat_id = l_chat_id or l_chat_id = 0)
         and uc.enable_flg = 10
+      group by uc.chat_id
     )
-    select c.chat_title as chat_name
-    , u1.visible_name as visible_name1
-    , u1.username as username1
-    , u1.color as user_color1
-    , v1.date_begin as date_begin1
-    , v1.date_end as date_end1
-    , u2.visible_name as visible_name2
-    , u2.username as username2
-    , u2.color as user_color2
-    , v2.date_begin as date_begin2
-    , v2.date_end as date_end2
+    select c.chat_title::text as chat_name
+    , u1.visible_name::text as visible_name1
+    , u1.username::text as username1
+    , u1.color::bytea as user_color1
+    , v1.date_begin::date as date_begin1
+    , v1.date_end::date as date_end1
+    , u2.visible_name::text as visible_name2
+    , u2.username::text as username2
+    , u2.color::bytea as user_color2
+    , v2.date_begin::date as date_begin2
+    , v2.date_end::date as date_end2
     from all_chat as a
     join rmaster.staff_department as uc1 on uc1.chat_id = a.chat_id and uc1.enable_flg = 10
     join rmaster.staff_department as uc2 on uc2.chat_id = a.chat_id and uc2.enable_flg = 10
-                                        and uc1.user_id <> uc2.user_id
+                                        and uc1.user_id < uc2.user_id
     join rmaster.staff as u1 on u1.user_id = uc1.user_id
     join rmaster.staff as u2 on u2.user_id = uc2.user_id
     join rmaster.department as c on c.chat_id = uc1.chat_id
@@ -542,7 +546,7 @@ CREATE TYPE api.t_upcoming AS (
 	date_end date);
 
 
-DROP FUNCTION IF EXISTS api.r_upcoming(int8, int8, int4);
+DROP FUNCTION IF EXISTS api.r_upcoming(int8, int8, date);
 CREATE OR REPLACE FUNCTION api.r_upcoming(i_chat_id bigint default null::bigint, i_user_id bigint default null::bigint, i_date date default null::date)
  RETURNS SETOF api.t_upcoming
  LANGUAGE plpgsql
@@ -564,13 +568,14 @@ BEGIN
       where (uc.user_id = l_user_id or l_user_id = 0)
         and (uc.chat_id = l_chat_id or l_chat_id = 0)
         and uc.enable_flg = 10
+      group by uc.chat_id
     )
-    select c.chat_title as chat_name
-    , u.visible_name as visible_name
-    , u.username as username
-    , u.color as user_color
-    , v.date_begin as date_begin
-    , v.date_end as date_end
+    select c.chat_title::text as chat_name
+    , u.visible_name::text as visible_name
+    , u.username::text as username
+    , u.color::bytea as user_color
+    , v.date_begin::date as date_begin
+    , v.date_end::date as date_end
     from all_chat as a
     join rmaster.staff_department as uc on uc.chat_id = a.chat_id and uc.enable_flg = 10
     join rmaster.staff as u on u.user_id = uc.user_id
@@ -626,6 +631,7 @@ BEGIN
       where (uc.user_id = l_user_id or l_user_id = 0)
         and (uc.chat_id = l_chat_id or l_chat_id = 0)
         and uc.enable_flg = 10
+      group by uc.chat_id
     )
     , all_vacation as (
       select c.chat_title as chat_name
@@ -643,20 +649,20 @@ BEGIN
                                 and zy.year_start_date <= v.date_end
                                 and zy.year_end_date >= v.date_begin
     )
-    select zd.date_gid as date_gid
-    , dw.value as name_weekday
-    , zd.day_num_in_week as num_weekday
-    , df.value as name_day_off
-    , dh.value as name_holiday
-    , zm.description as name_month
-    , zd.day_num_in_month as num_day
-    , zd.month_num_in_year as num_month
-    , zd.quarter_num_in_year as num_quart
-    , zd.year_gid as num_year
-    , av.chat_name
-    , av.visible_name
-    , av.username
-    , av.user_color
+    select zd.date_gid::date as date_gid
+    , dw.value::text as name_weekday
+    , zd.day_num_in_week::int2 as num_weekday
+    , df.value::text as name_day_off
+    , dh.value::text as name_holiday
+    , zm.description::text as name_month
+    , zd.day_num_in_month::int2 as num_day
+    , zd.month_num_in_year::int2 as num_month
+    , zd.quarter_num_in_year::int2 as num_quart
+    , zd.year_gid::int4 as num_year
+    , av.chat_name::text
+    , av.visible_name::text
+    , av.username::text
+    , av.user_color::bytea
     from rmaster.zmtd_date as zd
     join zmtd_month as m on zd.date_gid between m.month_start_date and m.month_end_date
     join zmtd_flag as zm on zm.flag_gid = m.month_name_gid
@@ -712,13 +718,13 @@ BEGIN
       join rmaster.zmtd_flag as zfv on zfv.flag_gid = v.enable_flg
       where u.user_id = l_user_id
     )
-    select av.vacation_gid
-    , av.date_begin
-    , av.date_end
-    , av.vac_value
-    , count(date_gid) as day_count
-    , count(date_gid) filter (where zd.day_off_flg = 500) as workday_count
-    , count(date_gid) filter (where zd.holiday_flg = 503) as holyday_count
+    select av.vacation_gid::bigint
+    , av.date_begin::date
+    , av.date_end::date
+    , av.vac_value::text
+    , (count(date_gid))::int4 as day_count
+    , (count(date_gid) filter (where zd.day_off_flg = 500))::int4 as workday_count
+    , (count(date_gid) filter (where zd.holiday_flg = 503))::int4 as holyday_count
     from rmaster.zmtd_date as zd
     join all_vacation as av on zd.date_gid between av.date_begin and av.date_end
     group by av.vacation_gid, av.date_begin, av.date_end, av.vac_value
@@ -759,17 +765,17 @@ DECLARE
 BEGIN
   IF l_user_id <> 0 THEN
     RETURN QUERY
-    select u.user_id
-    , u.first_name
-    , u.last_name
-    , u.username
-    , u.visible_name
-    , u.color
-    , u.start_date
-    , u.update_date
-    , count(uc.chat_id) as chat_count
-    , count(uc.chat_id) filter (where uc.enable_flg = 10) as enable_chat_count
-    , count(ad.chat_id) filter (where ad.enable_flg = 10) as enable_admin_count
+    select u.user_id::bigint
+    , u.first_name::text
+    , u.last_name::text
+    , u.username::text
+    , u.visible_name::text
+    , u.color::bytea
+    , u.start_date::date
+    , u.update_date::date
+    , (count(uc.chat_id))::int4 as chat_count
+    , (count(uc.chat_id) filter (where uc.enable_flg = 10))::int4 as enable_chat_count
+    , (count(ad.chat_id) filter (where ad.enable_flg = 10))::int4 as enable_admin_count
     from rmaster.staff as u
     join rmaster.staff_department as uc on uc.user_id = u.user_id
     join rmaster.department as c on c.chat_id = uc.chat_id
@@ -806,20 +812,18 @@ DECLARE
   l_date_end date := coalesce(i_date_end, (l_date_begin + make_interval(days => coalesce(i_day_count, 14) - 1))::date);
 
 BEGIN
-  IF l_user_id <> 0 THEN
-    RETURN QUERY
-    select av.date_begin
-    , av.date_end
-    , count(date_gid) as day_count
-    , count(date_gid) filter (where zd.day_off_flg = 500) as workday_count
-    , count(date_gid) filter (where zd.holiday_flg = 503) as holyday_count
+  RETURN QUERY
+    select l_date_begin as date_begin
+    , l_date_end as date_end
+    , (count(date_gid))::int4 as day_count
+    , (count(date_gid) filter (where zd.day_off_flg = 500))::int4 as workday_count
+    , (count(date_gid) filter (where zd.holiday_flg = 503))::int4 as holyday_count
     from rmaster.zmtd_date as zd
     where zd.date_gid between l_date_begin and l_date_end
-    group by av.date_begin, av.date_end
-    order by av.date_begin, av.date_end
+    group by date_begin, date_end
+    order by date_begin, date_end
     FOR READ ONLY;
-  END IF;
-RETURN;
+  RETURN;
 END
 $function$
 ;
