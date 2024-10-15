@@ -1,4 +1,5 @@
 import asyncio
+from datetime import date
 
 import asyncpg
 
@@ -18,7 +19,9 @@ class DB:
 
     async def select(self):
         async with self._pool.acquire() as conn:
-            print(await conn.fetch('''SELECT * FROM zmtd_year where year_gid = 2024'''))
+            print(await conn.fetch('select * from api.r_check_period($1::date, $2::date, $3::int4)', None, None, None))
+            print(await conn.fetch('select * from api.r_check_period($1::date, $2::date, $3::int4)', None, None, 20))
+            print(await conn.fetch('select * from api.r_check_period($1::date, $2::date, $3::int4)', date(2024, 1, 1), date(2024, 2, 1), None))
 
 
 async def select(pool):
