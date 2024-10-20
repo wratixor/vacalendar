@@ -15,7 +15,3 @@
 - Run <code>db_utils/datafixes.sql</code> into PostgreSQL CLI</br>
 - Run <code>db_utils/reinit_api.sql</code> into PostgreSQL CLI</br>
 
-<h3>Help:</h3>
-
-
-<h3></h3>
