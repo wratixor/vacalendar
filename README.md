@@ -3,7 +3,6 @@
 
 <h3>Requirements:</h3>
  - aiogram</br>
- - APScheduler</br>
  - python-decouple</br>
  - redis</br>
  - asyncpg</br>

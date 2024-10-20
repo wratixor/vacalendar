@@ -1,5 +1,4 @@
 aiogram~=3.13.1
-APScheduler~=3.10.4
 python-decouple~=3.8
 redis~=5.1.0
 asyncpg~=0.29.0

@@ -5,7 +5,6 @@ from create_bot import bot, dp, scheduler, admins
 from handlers.admin_menu import admin_router
 from handlers.inline_menu import inline_router
 from handlers.start import start_router
-from work_time.time_func import send_time_msg
 from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
 
@@ -57,9 +56,6 @@ async def stop_bot():
             logger.error(f'stop_bot(): {e}')
 
 async def main():
-    scheduler.add_job(send_time_msg, 'interval', month=1)
-    scheduler.start()
-
     dp.include_router(start_router)
     dp.include_router(inline_router)
     dp.include_router(admin_router)
