@@ -12,6 +12,8 @@
 - <code>gh repo clone wratixor/vacalendar</code>
 - <code>pip install -r requirements.txt</code>
 - Edit template.env and rename to .env
+- Run <code>db_utils/reinit_tables.sql</code> into PostgreSQL CLI
+- Run <code>db_utils/reinit_api.sql</code> into PostgreSQL CLI
 
 <h3>Help:</h3>
 
