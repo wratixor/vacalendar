@@ -20,6 +20,8 @@ class QParamMiddleware(BaseMiddleware):
             tmp_uname = f'@{tmp_uname}'
         data['quname']: str = tmp_uname
         data['isgroup']: bool = event.chat.type in self.group_set
-        data['isadmin']: bool = (await event.chat.get_member(event.from_user.id)) in (await event.chat.get_administrators())
+        data['isadmin']: bool = False
+        if data['isgroup']:
+            data['isadmin']: bool = (await event.chat.get_member(event.from_user.id)) in (await event.chat.get_administrators())
         return await handler(event, data)
 
