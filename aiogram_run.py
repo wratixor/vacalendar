@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from create_bot import bot, dp, scheduler, admins
+from create_bot import bot, dp, admins
 from handlers.admin_menu import admin_router
 from handlers.inline_menu import inline_router
 from handlers.start import start_router
