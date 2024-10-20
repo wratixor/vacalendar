@@ -91,6 +91,7 @@ async def kick(message: Message, command: CommandObject, db: asyncpg.pool.Pool, 
     if isadmin:
         await r.s_aou_admin(db, message.from_user.id, message.chat.id, quname, 'add')
     if isgroup:
+        await r.s_aou_group(db, message.chat.id, message.chat.type, message.chat.title)
         username: str = command.args
         if username:
             res = await r.s_name_kick(db, message.from_user.id, message.chat.id, username)
@@ -103,17 +104,17 @@ async def kick(message: Message, command: CommandObject, db: asyncpg.pool.Pool, 
 @start_router.message(Command('readmin'))
 async def readmin(message: Message, command: CommandObject, db: asyncpg.pool.Pool, quname: str, isgroup: bool, isadmin: bool):
     res: str
-    args: list[str] = command.args.split(' ')
     await r.s_aou_user(db, message.from_user.id, message.from_user.first_name, message.from_user.last_name, quname)
-    if args[1] is None:
-        args[1] = 'swap'
-    if isadmin:
-        args[1] = 'add'
     if isgroup:
-        if args[0]:
-            res = await r.s_aou_admin(db, message.from_user.id, message.chat.id, args[0], args[1])
-        else:
-            res = await r.s_aou_admin(db, message.from_user.id, message.chat.id, quname, args[1])
+        args: list[str] = command.args.split(' ')
+        if args.__len__() == 0:
+            args.append(quname)
+        if args.__len__() == 1:
+            args.append('swap')
+        if isadmin:
+            args[1] = 'add'
+        await r.s_aou_group(db, message.chat.id, message.chat.type, message.chat.title)
+        res = await r.s_aou_admin(db, message.from_user.id, message.chat.id, args[0], args[1])
         await message.answer(f'{res}')
     else:
         await message.answer('Команда доступна только в группе!')
