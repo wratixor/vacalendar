@@ -2,18 +2,18 @@
 <h2>VaCalendar - a simple bot for planning vacations.</h2>
 
 <h3>Requirements:</h3>
- - aiogram
- - APScheduler
- - python-decouple
- - redis
- - asyncpg
+ - aiogram</br>
+ - APScheduler</br>
+ - python-decouple</br>
+ - redis</br>
+ - asyncpg</br>
 
 <h3>Install:</h3>
-- <code>gh repo clone wratixor/vacalendar</code>
-- <code>pip install -r requirements.txt</code>
-- Edit template.env and rename to .env
-- Run <code>db_utils/reinit_tables.sql</code> into PostgreSQL CLI
-- Run <code>db_utils/reinit_api.sql</code> into PostgreSQL CLI
+- <code>gh repo clone wratixor/vacalendar</code></br>
+- <code>pip install -r requirements.txt</code></br>
+- Edit template.env and rename to .env</br>
+- Run <code>db_utils/reinit_tables.sql</code> into PostgreSQL CLI</br>
+- Run <code>db_utils/reinit_api.sql</code> into PostgreSQL CLI</br>
 
 <h3>Help:</h3>
 
