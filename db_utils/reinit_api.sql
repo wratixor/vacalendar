@@ -231,9 +231,9 @@ AS $function$
 
   RETURN (
     SELECT
-      case when     l_check_query then 'Успешно присоединился к группе'
-           when  l_check_flg = 10 then 'Уже есть в группе'
-           when  l_check_flg = 12 then 'Восстановлен в группу'
+      case when     l_check_query then l_username||' успешно присоединился к группе'
+           when  l_check_flg = 10 then l_username||' уже есть в группе'
+           when  l_check_flg = 12 then l_username||' восстановлен в группу'
            when not l_check_admin then 'Недостаточно прав'
            when not  l_check_user then 'Неизвестный пользователь'
            when not  l_check_chat then 'Неизвестная группа'
@@ -287,9 +287,9 @@ AS $function$
 
   RETURN (
     SELECT
-      case when       l_check_query then 'Успешно покинул группу. Права: '||l_del_admin
-           when    l_check_flg = 12 then 'Уже не в группе'
-           when l_check_flg is null then 'Отсутствует в группе'
+      case when       l_check_query then l_username||' успешно покинул группу. Права: '||l_del_admin
+           when    l_check_flg = 12 then l_username||' сейчас не в группе'
+           when l_check_flg is null then l_username||' отсутствует в группе'
            when not   l_check_admin then 'Недостаточно прав'
            when not    l_check_user then 'Неизвестный пользователь'
            when not    l_check_chat then 'Неизвестная группа'
@@ -339,7 +339,7 @@ AS $function$
 
   RETURN (
     SELECT
-      case when     l_check_query then 'Исключён из группы, права администратора отозваны, если были.'
+      case when     l_check_query then l_username||' исключён из группы, права администратора отозваны, если были.'
            when not l_check_admin then 'Недостаточно прав'
            when not  l_check_user then 'Неизвестный пользователь'
            when not  l_check_chat then 'Неизвестная группа'

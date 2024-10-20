@@ -10,7 +10,7 @@ from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
 logger = logging.getLogger(__name__)
 
-async def set_all_comads():
+async def set_all_commands():
     commands = [BotCommand(command='/start', description='Инициализация'),
                 BotCommand(command='/help', description='Помощь'),
                 BotCommand(command='/join', description='Вступить в группу'),
@@ -24,7 +24,7 @@ async def set_all_comads():
                 ]
     await bot.set_my_commands(commands)
 
-async def set_private_comads():
+async def set_private_commands():
     commands = [BotCommand(command='/start', description='Инициализация'),
                 BotCommand(command='/help', description='Помощь'),
                 BotCommand(command='/add', description='Добавить отпуск'),
@@ -59,12 +59,11 @@ async def main():
     dp.include_router(start_router)
     dp.include_router(inline_router)
     dp.include_router(admin_router)
-    dp.startup.register(set_all_comads)
-    dp.startup.register(set_private_comads)
+    dp.startup.register(set_all_commands)
+    dp.startup.register(set_private_commands)
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
-
 
     try:
         await bot.delete_webhook(drop_pending_updates=True)
