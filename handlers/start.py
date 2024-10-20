@@ -1,37 +1,69 @@
+import logging
+
+import asyncpg
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message, ReplyKeyboardRemove
+
+from create_bot import bot_url
 from keyboards.all_kb import main_kb, mini_kb, private_kb
 from middlewares.DataBaseMiddleware import DatabaseMiddleware
+from middlewares.QParamMiddleware import QParamMiddleware
+import db_utils.db_request as r
 
 start_router = Router()
 start_router.message.middleware(DatabaseMiddleware())
+start_router.message.middleware(QParamMiddleware())
+logger = logging.getLogger(__name__)
 
 @start_router.message(CommandStart())
-async def cmd_start(message: Message, command: CommandObject):
+async def cmd_start(message: Message, command: CommandObject, db: asyncpg.pool.Pool, quname: str, isgroup: bool, isadmin: bool):
+    await r.s_aou_user(db, message.from_user.id, message.from_user.first_name, message.from_user.last_name, quname)
+    if isadmin:
+        await r.s_aou_admin(db, message.from_user.id, message.chat.id, quname,'add')
+    if isgroup:
+        await message.answer(f'Доброго времени суток всем в этом чатике!'
+                             f'\nПолный список команд с описаниями доступен по команде /help'
+                             f'\nДля присоединения к группе введите команду /join'
+                             f'\nили откройте бот по ссылке {bot_url}?start={message.chat.id}')
+    else:
+        command_args: str = command.args
+        if command_args:
+            res: str = await r.s_name_join(db, message.from_user.id, int(command_args), quname)
+            await message.answer(f'Привет, {quname}!'
+                                 f'\nПолный список команд с описаниями доступен по команде /help'
+                                 f'\nПрисоединение к группе: {res}')
+        else:
+            await message.answer(f'Привет, {quname}!'
+                                 f'\nПолный список команд с описаниями доступен по команде /help'
+                                 f'\nДля присоединения к группе добавьте бота в группу'
+                                 f', активируйте (/start) и введите команду /join')
+
+@start_router.message(Command('test'))
+async def test(message: Message, command: CommandObject, quname: str, isgroup: bool, isadmin: bool):
     command_args: str = command.args
-    if command_args:
-        await message.answer(f'Привет! {command_args}')
-    else:
-        await message.answer('Привет!')
-
-@start_router.message(Command('who_am_i'))
-async def who_am_i(message: Message):
-    text = ''
-    user = message.from_user
-    if user.username: text += f"YOU: @{user.username} "
-    if user.last_name: text += f"YOUR NAME: {user.full_name} "
-    else: text += f"YOUR NAME: {user.first_name} "
-    text += f"YOUR ID: {user.id}"
+    text: str = (f'test: {command_args}'
+                 f'\nquname: {quname}'
+                 f'\nisgroup: {isgroup}'
+                 f'\nisadmin: {isadmin}')
     await message.reply(text)
+    logger.info(command_args)
 
-@start_router.message(Command('menu'))
-async def menu(message: Message):
-    if message.chat.type == 'private':
-        kb=private_kb(message.from_user.id)
+@start_router.message(Command('join'))
+async def join(message: Message, command: CommandObject, db: asyncpg.pool.Pool, quname: str, isgroup: bool, isadmin: bool):
+    res: str
+    await r.s_aou_user(db, message.from_user.id, message.from_user.first_name, message.from_user.last_name, quname)
+    if isadmin:
+        await r.s_aou_admin(db, message.from_user.id, message.chat.id, quname,'add')
+    if isgroup:
+        username: str = command.args
+        if username:
+            res = await r.s_name_join(db, message.from_user.id, message.chat.id, username)
+        else:
+            res = await r.s_name_join(db, message.from_user.id, message.chat.id, quname)
+        await message.answer(f'{res}')
     else:
-        kb=main_kb(message.from_user.id)
-    await message.answer('Даём меню...', reply_markup=kb)
+        await message.answer('Команда доступна только в группе!')
 
 @start_router.message(Command('inline_menu'))
 async def inline_menu(message: Message):

@@ -9,7 +9,7 @@
  - asyncpg</br>
 
 <h3>Install:</h3>
-- <code>gh repo clone wratixor/vacalendar</code></br>
+- <code>git clone https://github.com/wratixor/vacalendar</code></br>
 - <code>pip install -r requirements.txt</code></br>
 - Edit template.env and rename to .env</br>
 - Run <code>db_utils/reinit_tables.sql</code> into PostgreSQL CLI</br>

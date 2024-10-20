@@ -39,7 +39,7 @@ async def s_name_kick(pool: asyncpg.pool.Pool, user_id: int, group_id: int, user
     return result
 
 async def s_aou_user(pool: asyncpg.pool.Pool, user_id: int, first_name: str, last_name: str, username: str
-                   , updpar: str = '', updval: str = '') -> str:
+                   , updpar: str = None, updval: str = None) -> str:
     result: str
     async with pool.acquire() as conn:
         try:
@@ -62,7 +62,8 @@ async def s_aou_group(pool: asyncpg.pool.Pool, group_id: int, group_type: str, g
             logger.error(result)
     return result
 
-async def s_aou_admin(pool: asyncpg.pool.Pool, user_id: int, group_id: int, username: str, operation: str='swap') -> str:
+async def s_aou_admin(pool: asyncpg.pool.Pool, user_id: int, group_id: int, username: str
+                      , operation: str = 'swap') -> str:
     result: str
     async with pool.acquire() as conn:
         try:
@@ -73,8 +74,8 @@ async def s_aou_admin(pool: asyncpg.pool.Pool, user_id: int, group_id: int, user
             logger.error(result)
     return result
 
-async def s_add_vacation(pool: asyncpg.pool.Pool, user_id: int
-                       , date_begin: datetime.date=None, date_end: datetime.date=None, day_count: int=None) -> str:
+async def s_add_vacation(pool: asyncpg.pool.Pool, user_id: int, date_begin: datetime.date = None
+                         , date_end: datetime.date = None, day_count: int = None) -> str:
     result: str
     async with pool.acquire() as conn:
         try:
@@ -97,7 +98,7 @@ async def s_sod_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: in
     return result
 
 async def s_upd_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: int
-                       , date_begin: datetime.date=None, date_end: datetime.date=None, day_count: int=None) -> str:
+                       , date_begin: datetime.date = None, date_end: datetime.date = None, day_count: int = None) -> str:
     result: str
     async with pool.acquire() as conn:
         try:
@@ -108,7 +109,7 @@ async def s_upd_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: in
             logger.error(result)
     return result
 
-async def r_status(pool: asyncpg.pool.Pool, user_id: int=None, group_id: int=None) -> list[Record]:
+async def r_status(pool: asyncpg.pool.Pool, user_id: int = None, group_id: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
@@ -130,7 +131,7 @@ async def r_myaccount(pool: asyncpg.pool.Pool, user_id: int) -> list[Record]:
             logger.error(result[0])
     return result
 
-async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date=None, date_end: datetime.date=None) -> list[Record]:
+async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date = None, date_end: datetime.date = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
@@ -141,7 +142,7 @@ async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date=None
             logger.error(result[0])
     return result
 
-async def r_myvacation(pool: asyncpg.pool.Pool, user_id: int, n_year: int=None) -> list[Record]:
+async def r_myvacation(pool: asyncpg.pool.Pool, user_id: int, n_year: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
@@ -152,7 +153,7 @@ async def r_myvacation(pool: asyncpg.pool.Pool, user_id: int, n_year: int=None) 
             logger.error(result[0])
     return result
 
-async def r_cross(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=None, n_year: int=None) -> list[Record]:
+async def r_cross(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, n_year: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
@@ -163,7 +164,7 @@ async def r_cross(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=None
             logger.error(result[0])
     return result
 
-async def r_all(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=None, n_year: int=None) -> list[Record]:
+async def r_all(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, n_year: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
@@ -174,7 +175,7 @@ async def r_all(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=None, 
             logger.error(result[0])
     return result
 
-async def r_calendar(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=None, n_year: int=None) -> list[Record]:
+async def r_calendar(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, n_year: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
@@ -185,7 +186,7 @@ async def r_calendar(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=N
             logger.error(result[0])
     return result
 
-async def r_upcoming(pool: asyncpg.pool.Pool, group_id: int=None, user_id: int=None, date_begin: datetime.date=None) -> list[Record]:
+async def r_upcoming(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, date_begin: datetime.date = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
