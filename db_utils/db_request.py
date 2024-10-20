@@ -55,7 +55,7 @@ async def s_aou_group(pool: asyncpg.pool.Pool, group_id: int, group_type: str, g
     result: str
     async with pool.acquire() as conn:
         try:
-            result = await conn.fetchval("select * from api.s_name_kick($1::bigint, $2::text, $3::text)"
+            result = await conn.fetchval("select * from api.s_aou_group($1::bigint, $2::text, $3::text)"
                                          , group_id, group_type, group_title)
         except Exception as e:
             result = f"Exception s_aou_group({group_id}, {group_type}, {group_title}): {e}"
