@@ -67,7 +67,7 @@ async def s_aou_admin(pool: asyncpg.pool.Pool, user_id: int, group_id: int, user
     result: str
     async with pool.acquire() as conn:
         try:
-            result = await conn.fetchval("select * from api.s_name_kick($1::bigint, $2::bigint, $3::text, $4::text)"
+            result = await conn.fetchval("select * from api.s_aou_admin($1::bigint, $2::bigint, $3::text, $4::text)"
                                          , user_id, group_id, username, operation)
         except Exception as e:
             result = f"Exception s_aou_admin({user_id}, {group_id}, {username}, {operation}): {e}"

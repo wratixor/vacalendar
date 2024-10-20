@@ -22,6 +22,7 @@ async def cmd_start(message: Message, command: CommandObject, db: asyncpg.pool.P
     if isadmin:
         await r.s_aou_admin(db, message.from_user.id, message.chat.id, quname,'add')
     if isgroup:
+        await r.s_aou_group(db, message.chat.id, message.chat.type, message.chat.title)
         await message.answer(f'Доброго времени суток всем в этом чатике!'
                              f'\nПолный список команд с описаниями доступен по команде /help'
                              f'\nДля присоединения к группе введите команду /join'
