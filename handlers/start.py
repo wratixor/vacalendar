@@ -111,7 +111,7 @@ async def readmin(message: Message, command: CommandObject, db: asyncpg.pool.Poo
             args.append(quname)
         if args.__len__() == 1:
             args.append('swap')
-        if isadmin:
+        if isadmin and args[0] == quname:
             args[1] = 'add'
         await r.s_aou_group(db, message.chat.id, message.chat.type, message.chat.title)
         res = await r.s_aou_admin(db, message.from_user.id, message.chat.id, args[0], args[1])
