@@ -13,6 +13,7 @@
 - <code>pip install -r requirements.txt</code></br>
 - Edit template.env and rename to .env</br>
 - Run <code>db_utils/reinit_tables.sql</code> into PostgreSQL CLI</br>
+- Run <code>db_utils/datafixes.sql</code> into PostgreSQL CLI</br>
 - Run <code>db_utils/reinit_api.sql</code> into PostgreSQL CLI</br>
 
 <h3>Help:</h3>
