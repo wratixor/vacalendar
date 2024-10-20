@@ -18,7 +18,6 @@ async def admin_menu(message: Message, command: CommandObject):
             await dp.stop_polling()
             await bot.session.close()
             await bot.close()
-            #await exit(0)
         except Exception as e:
             logger.error(f'/stop: {e}')
     elif command.text == '/stat':
