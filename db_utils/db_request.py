@@ -114,7 +114,7 @@ async def r_status(pool: asyncpg.pool.Pool, user_id: int = None, group_id: int =
     async with pool.acquire() as conn:
         try:
             result = await conn.fetch("select * from api.r_status($1::bigint, $2::bigint)"
-                                         , user_id, group_id)
+                                         , group_id, user_id)
         except Exception as e:
             result[0] = Record(exeption = f"Exception r_status({user_id}, {group_id}): {e}")
             logger.error(result[0])
