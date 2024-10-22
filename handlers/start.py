@@ -124,7 +124,7 @@ async def readmin(message: Message, command: CommandObject, db: asyncpg.pool.Poo
 @start_router.message(Command('status'))
 async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
     res: list[Record]
-    answer: str = f'<code>Name | joined | admin | yvc | nvc \n'
+    answer: str = f'<code>Name | joined | admin | yvc | nvc\n'
     if isgroup:
         res = await r.r_status(db, None, message.chat.id)
         for row in res:
