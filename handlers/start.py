@@ -5,7 +5,6 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message, ReplyKeyboardRemove
 from asyncpg import Record
-from redis.commands.search.result import Result
 
 from create_bot import bot_url
 from keyboards.all_kb import main_kb, mini_kb, private_kb
@@ -124,23 +123,21 @@ async def readmin(message: Message, command: CommandObject, db: asyncpg.pool.Poo
 @start_router.message(Command('status'))
 async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
     res: list[Record]
-    answer: str = f'<code>Имя: В группе? Админ? Отпусков в году. В отпуске?</code>\n'
+    answer: str = f'<code>Отпуск? В группе? Админ?: Имя - Отпусков в году</code>\n'
     if isgroup:
         res = await r.r_status(db, None, message.chat.id)
         for row in res:
-            answer += (f'{row['visible_name']}'
-                       f': {'◻' if row['user_join'] == 'enable' else '◼'}'
-                       f'/{'👑' if row['user_admin'] == 'enable' else '🎓'}'
-                       f' 📅 {row['year_vacation_count']}'
-                       f' - {'🌴' if row['now_vacation_count'] > 0 else '💼'}\n')
+            answer += (f'{'🌴' if row['now_vacation_count'] > 0 else '💼'}'
+                       f'|{'◻' if row['user_join'] == 'enable' else '◼'}'
+                       f'|{'👑' if row['user_admin'] == 'enable' else '🎓'}'
+                       f': {row['visible_name']} - {row['year_vacation_count']}\n')
     else:
         res = await r.r_status(db, message.from_user.id, None)
         for row in res:
-            answer += (f'{row['chat_name']}'
-                       f': {'◻' if row['user_join'] == 'enable' else '◼'}'
-                       f'/{'👑' if row['user_admin'] == 'enable' else '🎓'}'
-                       f': {row['year_vacation_count']}'
-                       f': {'🌴' if row['now_vacation_count'] > 0 else '💼'}\n')
+            answer += (f'{'🌴' if row['now_vacation_count'] > 0 else '💼'}'
+                       f'|{'◻' if row['user_join'] == 'enable' else '◼'}'
+                       f'|{'👑' if row['user_admin'] == 'enable' else '🎓'}'
+                       f': {row['chat_name']} - {row['year_vacation_count']}\n')
     await message.answer(f'{answer}')
 
 
