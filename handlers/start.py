@@ -128,16 +128,19 @@ async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
     if isgroup:
         res = await r.r_status(db, None, message.chat.id)
         for row in res:
-            answer += (f' {row['visible_name']}'
+            answer += (f'{row['visible_name']}'
                        f': {'🟢' if row['user_join'] == 'enable' else '⚫'}'
                        f'/{'👑' if row['user_admin'] == 'enable' else '🎓'}'
-                       f' :📅 {row['year_vacation_count']}'
-                       f': {'🌴' if row['now_vacation_count'] > 0 else '💼'}\n')
+                       f' 📅 {row['year_vacation_count']}'
+                       f' - {'🌴' if row['now_vacation_count'] > 0 else '💼'}\n')
     else:
         res = await r.r_status(db, message.from_user.id, None)
         for row in res:
-            answer += (f'{row['chat_name']}|{row['user_join']}|{row['user_admin']}'
-                       f'|{row['year_vacation_count']}|{row['now_vacation_count']}\n')
+            answer += (f'{row['chat_name']}'
+                       f': {'🟢' if row['user_join'] == 'enable' else '⚫'}'
+                       f'/{'👑' if row['user_admin'] == 'enable' else '🎓'}'
+                       f' 📅 {row['year_vacation_count']}'
+                       f' - {'🌴' if row['now_vacation_count'] > 0 else '💼'}\n')
     await message.answer(f'{answer}')
 
 
