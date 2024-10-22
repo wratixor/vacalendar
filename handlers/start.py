@@ -4,11 +4,13 @@ import asyncpg
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message, ReplyKeyboardRemove
+from asyncpg import Record
+from redis.commands.search.result import Result
 
 from create_bot import bot_url
 from keyboards.all_kb import main_kb, mini_kb, private_kb
-from middlewares.DataBaseMiddleware import DatabaseMiddleware
-from middlewares.QParamMiddleware import QParamMiddleware
+from middlewares.db_middleware import DatabaseMiddleware
+from middlewares.qparam_middleware import QParamMiddleware
 import db_utils.db_request as r
 
 start_router = Router()
@@ -118,6 +120,24 @@ async def readmin(message: Message, command: CommandObject, db: asyncpg.pool.Poo
         await message.answer(f'{res}')
     else:
         await message.answer('Команда доступна только в группе!')
+
+@start_router.message(Command('status'))
+async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
+    res: list[Record]
+    answer: str = f'<code>Name | joined | admin | yvc | nvc \n'
+    if isgroup:
+        res = await r.r_status(db, None, message.chat.id)
+        for row in res:
+            answer += (f'{row['visible_name']}|{row['user_join']}|{row['user_admin']}'
+                       f'|{row['year_vacation_count']}|{row['now_vacation_count']}\n')
+    else:
+        res = await r.r_status(db, message.from_user.id, None)
+        for row in res:
+            answer += (f'{row['chat_name']}|{row['user_join']}|{row['user_admin']}'
+                       f'|{row['year_vacation_count']}|{row['now_vacation_count']}\n')
+    answer += '</code>'
+    await message.answer(f'{answer}')
+
 
 @start_router.message(Command('inline_menu'))
 async def inline_menu(message: Message):
