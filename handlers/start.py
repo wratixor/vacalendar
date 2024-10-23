@@ -52,8 +52,8 @@ async def test(message: Message, command: CommandObject, quname: str, isgroup: b
     await message.reply(text)
     logger.info(command_args)
 
-@start_router.message(Command('status'))
-async def status(message: Message, isgroup: bool):
+@start_router.message(Command('help'))
+async def helper(message: Message, isgroup: bool):
     answer: str = (f'Доброго времени суток!'
                    f'\n<b>Всегда доступны команды:</b>'
                    f'\n/start - Инициализация бота в группе | в приватном чате'
