@@ -15,7 +15,7 @@ class QParamMiddleware(BaseMiddleware):
     ) -> Any:
         tmp_uname: str = event.from_user.username
         if tmp_uname is None:
-            tmp_uname = f'@{event.from_user.id}'
+            tmp_uname = f'{event.from_user.first_name}'
         else:
             tmp_uname = f'@{tmp_uname}'
         data['quname']: str = tmp_uname
