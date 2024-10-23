@@ -1,4 +1,6 @@
 import logging
+import re
+from datetime import date
 
 import asyncpg
 from aiogram import Router, F
@@ -16,6 +18,25 @@ start_router = Router()
 start_router.message.middleware(DatabaseMiddleware())
 start_router.message.middleware(QParamMiddleware())
 logger = logging.getLogger(__name__)
+
+isodata = re.compile(r'^\d\d\d\d-\d\d-\d\d$')
+isodata2 = re.compile(r'^\d\d\d\d-\d\d-\d\d \d\d\d\d-\d\d-\d\d$')
+isodata_day = re.compile(r'^\d\d\d\d-\d\d-\d\d \d+$')
+rudata = re.compile(r'^\d\d\.\d\d\.\d\d\d\d$')
+rudata2 = re.compile(r'^\d\d\.\d\d\.\d\d\d\d \d\d\.\d\d\.\d\d\d\d$')
+rudata_day = re.compile(r'^\d\d\.\d\d\.\d\d\d\d \d+$')
+
+def covert_date(datastring: str) -> date:
+    result: date
+    if isodata.match(datastring):
+        result = date.fromisoformat(datastring)
+    elif rudata.match(datastring):
+        dd = datastring.split('.')
+        result = date(int(dd[2]), int(dd[1]), int(dd[0]))
+    else:
+        result = date.today()
+    return result
+
 
 @start_router.message(CommandStart())
 async def cmd_start(message: Message, command: CommandObject, db: asyncpg.pool.Pool, quname: str, isgroup: bool, isadmin: bool):
@@ -178,14 +199,14 @@ async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
     res: list[Record]
     answer: str = f'<code>Отпуск? В группе? Админ?: Имя - Отпусков в году</code>\n'
     if isgroup:
-        res = await r.r_status(db, None, message.chat.id)
+        res = await r.r_status(db, message.chat.id, None)
         for row in res:
             answer += (f'{'🌴' if row['now_vacation_count'] > 0 else '💼'}'
                        f'|{'◻' if row['user_join'] == 'enable' else '◼'}'
                        f'|{'👑' if row['user_admin'] == 'enable' else '🎓'}'
                        f': {row['visible_name']} - {row['year_vacation_count']}\n')
     else:
-        res = await r.r_status(db, message.from_user.id, None)
+        res = await r.r_status(db, None, message.from_user.id)
         for row in res:
             answer += (f'{'🌴' if row['now_vacation_count'] > 0 else '💼'}'
                        f'|{'◻' if row['user_join'] == 'enable' else '◼'}'
@@ -193,6 +214,24 @@ async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
                        f': {row['chat_name']} - {row['year_vacation_count']}\n')
     await message.answer(f'{answer}')
 
+@start_router.message(Command('upcoming'))
+async def upcoming(message: Message, command: CommandObject, db: asyncpg.pool.Pool, isgroup: bool):
+    res: list[Record]
+    answer: str = f'<b>Ближайшие отпуска:</b>\n'
+    start_date: date or None
+    arg = command.args
+    start_date = covert_date(arg) if arg else None
+    if isgroup:
+        res = await r.r_upcoming(db, message.chat.id, None, start_date)
+        for row in res:
+            answer += (f'{row['username']}'
+                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+    else:
+        res = await r.r_upcoming(db, None, message.from_user.id, start_date)
+        for row in res:
+            answer += (f'{row['chat_name']}: {row['visible_name']}'
+                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+    await message.answer(f'{answer}')
 
 @start_router.message(Command('inline_menu'))
 async def inline_menu(message: Message):

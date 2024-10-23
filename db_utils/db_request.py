@@ -109,7 +109,7 @@ async def s_upd_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: in
             logger.error(result)
     return result
 
-async def r_status(pool: asyncpg.pool.Pool, user_id: int = None, group_id: int = None) -> list[Record]:
+async def r_status(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
