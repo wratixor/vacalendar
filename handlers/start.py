@@ -73,6 +73,13 @@ async def test(message: Message, command: CommandObject, quname: str, isgroup: b
     await message.reply(text)
     logger.info(command_args)
 
+@start_router.message(Command('developer_info'))
+async def developer_info(message: Message):
+    text: str = (f'Developer: @wratixor @tanatovich'
+                 f'\nSite: https://wratixor.ru'
+                 f'\nGithub: https://github.com/wratixor/vacalendar')
+    await message.answer(text)
+
 @start_router.message(Command('help'))
 async def helper(message: Message, isgroup: bool):
     answer: str = (f'Доброго времени суток!'
