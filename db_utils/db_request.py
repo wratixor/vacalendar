@@ -116,8 +116,7 @@ async def r_status(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int =
             result = await conn.fetch("select * from api.r_status($1::bigint, $2::bigint)"
                                          , group_id, user_id)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_status({user_id}, {group_id}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_status({user_id}, {group_id}): {e}")
     return result
 
 async def r_myaccount(pool: asyncpg.pool.Pool, user_id: int) -> list[Record]:
@@ -127,8 +126,7 @@ async def r_myaccount(pool: asyncpg.pool.Pool, user_id: int) -> list[Record]:
             result = await conn.fetch("select * from api.r_myaccount($1::bigint)"
                                          , user_id)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_myaccount({user_id}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_myaccount({user_id}): {e}")
     return result
 
 async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date = None, date_end: datetime.date = None) -> list[Record]:
@@ -138,8 +136,7 @@ async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date = No
             result = await conn.fetch("select * from api.r_check_period($1::date, $2::date)"
                                          , date_begin, date_end)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_check_period({date_begin}, {date_end}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_check_period({date_begin}, {date_end}): {e}")
     return result
 
 async def r_myvacation(pool: asyncpg.pool.Pool, user_id: int, n_year: int = None) -> list[Record]:
@@ -149,8 +146,7 @@ async def r_myvacation(pool: asyncpg.pool.Pool, user_id: int, n_year: int = None
             result = await conn.fetch("select * from api.r_myvacation($1::bigint, $2::integer)"
                                          , user_id, n_year)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_myvacation({user_id}, {n_year}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_myvacation({user_id}, {n_year}): {e}")
     return result
 
 async def r_cross(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, n_year: int = None) -> list[Record]:
@@ -160,8 +156,7 @@ async def r_cross(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = 
             result = await conn.fetch("select * from api.r_cross($1::bigint, $2::bigint, $3::integer)"
                                          , group_id, user_id, n_year)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_cross({group_id}, {user_id}, {n_year}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_cross({group_id}, {user_id}, {n_year}): {e}")
     return result
 
 async def r_all(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, n_year: int = None) -> list[Record]:
@@ -171,8 +166,7 @@ async def r_all(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = No
             result = await conn.fetch("select * from api.r_all($1::bigint, $2::bigint, $3::integer)"
                                          , group_id, user_id, n_year)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_all({group_id}, {user_id}, {n_year}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_all({group_id}, {user_id}, {n_year}): {e}")
     return result
 
 async def r_calendar(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, n_year: int = None) -> list[Record]:
@@ -182,8 +176,7 @@ async def r_calendar(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int
             result = await conn.fetch("select * from api.r_calendar($1::bigint, $2::bigint, $3::integer)"
                                          , group_id, user_id, n_year)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_calendar({group_id}, {user_id}, {n_year}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_calendar({group_id}, {user_id}, {n_year}): {e}")
     return result
 
 async def r_upcoming(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int = None, date_begin: datetime.date = None) -> list[Record]:
@@ -193,6 +186,5 @@ async def r_upcoming(pool: asyncpg.pool.Pool, group_id: int = None, user_id: int
             result = await conn.fetch("select * from api.r_upcoming($1::bigint, $2::bigint, $3::date)"
                                          , group_id, user_id, date_begin)
         except Exception as e:
-            result[0] = Record(exeption = f"Exception r_upcoming({group_id}, {user_id}, {date_begin}): {e}")
-            logger.error(result[0])
+            logger.error(f"Exception r_upcoming({group_id}, {user_id}, {date_begin}): {e}")
     return result
