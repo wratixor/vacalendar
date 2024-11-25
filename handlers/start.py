@@ -25,6 +25,7 @@ isodata_day = re.compile(r'^\d\d\d\d-\d\d-\d\d \d+$')
 rudata = re.compile(r'^\d\d\.\d\d\.\d\d\d\d$')
 rudata2 = re.compile(r'^\d\d\.\d\d\.\d\d\d\d \d\d\.\d\d\.\d\d\d\d$')
 rudata_day = re.compile(r'^\d\d\.\d\d\.\d\d\d\d \d+$')
+years = re.compile(r'^\d\d\d\d$')
 
 def covert_date(datastring: str) -> date:
     result: date
@@ -36,6 +37,15 @@ def covert_date(datastring: str) -> date:
     else:
         result = date.today()
     return result
+
+def get_year(datastring: str) -> int:
+    result: int = 0
+    if years.match(datastring):
+        result = int(datastring)
+    if result > 2100 or result < 2000:
+        result = date.today().year
+    return result
+
 
 
 @start_router.message(CommandStart())
@@ -240,12 +250,44 @@ async def upcoming(message: Message, command: CommandObject, db: asyncpg.pool.Po
                        f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
     await message.answer(f'{answer}')
 
-@start_router.message(Command('inline_menu'))
-async def inline_menu(message: Message):
-    await message.answer('Выбери действие:',
-                         reply_markup=mini_kb())
+@start_router.message(Command('cross'))
+async def cross(message: Message, command: CommandObject, db: asyncpg.pool.Pool, isgroup: bool):
+    res: list[Record]
+    answer: str = f'<b>Пересекающиеся отпуска:</b>\n'
+    t_year: int or None
+    arg = command.args
+    t_year = get_year(arg) if arg else None
+    if isgroup:
+        res = await r.r_cross(db, message.chat.id, None, t_year)
+        for row in res:
+            answer += (f'{row['username1']}'
+                       f': {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}'
+                       f' X {row['username2']}'
+                       f': {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n')
+    else:
+        res = await r.r_cross(db, None, message.from_user.id, t_year)
+        for row in res:
+            answer += (f'{row['chat_name']}: {row['visible_name1']}'
+                       f': {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}'
+                       f' X {row['visible_name2']}'
+                       f': {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n')
+    await message.answer(f'{answer}')
 
-@start_router.message(F.text.in_({'Кнопка 1', 'Кнопка 2', 'Кнопка 3', 'Кнопка 4'}))
-async def remove_kb(message: Message):
-    msg = await message.answer('Удаляю...', reply_markup=ReplyKeyboardRemove())
-    await msg.delete()
+@start_router.message(Command('all'))
+async def all_list(message: Message, command: CommandObject, db: asyncpg.pool.Pool, isgroup: bool):
+    res: list[Record]
+    answer: str = f'<b>Все отпуска:</b>\n'
+    t_year: int or None
+    arg = command.args
+    t_year = get_year(arg) if arg else None
+    if isgroup:
+        res = await r.r_all(db, message.chat.id, None, t_year)
+        for row in res:
+            answer += (f'{row['username']}'
+                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+    else:
+        res = await r.r_all(db, None, message.from_user.id, t_year)
+        for row in res:
+            answer += (f'{row['chat_name']}: {row['visible_name']}'
+                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+    await message.answer(f'{answer}')
