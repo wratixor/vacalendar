@@ -41,7 +41,7 @@ AS $function$
   END IF;
 
   IF l_check_user and l_upd_par = 'color' THEN
-    l_color := case when l_upd_val <> '' then l_upd_val
+    l_color := case when l_upd_val <> '' then ('\x'::text || l_upd_val)::bytea
                     else ('\x'::text || to_hex(trunc(random() * 200::double precision)::integer % 200 + 50)
                                      || to_hex(trunc(random() * 200::double precision)::integer % 200 + 50)
                                      || to_hex(trunc(random() * 200::double precision)::integer % 200 + 50))
@@ -829,46 +829,9 @@ $function$
 ;
 
 
-DROP FUNCTION IF EXISTS api.s_add_vacation(int8, date, date, int4);
-CREATE OR REPLACE FUNCTION api.s_add_vacation(i_user_id bigint, i_date_begin date default null::date, i_date_end date default null::date, i_day_count int4 default null::int4)
- RETURNS text
- LANGUAGE plpgsql
- VOLATILE SECURITY DEFINER COST 1
-AS $function$
-DECLARE
-  l_check_user boolean := false;
-  l_check_date boolean := false;
-  l_query boolean := false;
-
-  l_user_id bigint := coalesce(i_user_id, 0::bigint);
-  l_date_begin date := coalesce(i_date_begin, current_date)::date;
-  l_date_end date := coalesce(i_date_end, (l_date_begin + make_interval(days => coalesce(i_day_count, 14) - 1))::date);
-
-BEGIN
-
-  l_check_user := ((select count(1) from rmaster.staff as u where u.user_id = l_user_id) = 1);
-  l_check_date := ((select count(1) from rmaster.zmtd_date as d where d.date_gid in (l_date_begin, l_date_end)) = 2);
-
-  IF l_check_user and l_check_date THEN
-    insert into rmaster.vacation (user_id, date_begin, date_end) values (l_user_id, l_date_begin, l_date_end);
-    l_query := true;
-  END IF;
-
-  RETURN (
-    SELECT
-      case when l_query then 'Успешно добавлен'
-           when not l_check_user then 'Неизвестный пользователь'
-           when not l_check_date then 'Неподходящие даты'
-           else 'Не выполнено' end::text as status
-    FOR READ ONLY
-  );
-END
-$function$
-;
-
-
-DROP FUNCTION IF EXISTS api.s_upd_vacation(int8, int8, date, date, int4);
-CREATE OR REPLACE FUNCTION api.s_upd_vacation(i_user_id bigint, i_vacation_gid bigint, i_date_begin date default null::date, i_date_end date default null::date, i_day_count int4 default null::int4)
+DROP FUNCTION IF EXISTS api.s_aou_vacation(int8, int8, date, date, int4, int8);
+CREATE OR REPLACE FUNCTION api.s_aou_vacation(i_user_id bigint, i_date_begin date default null::date, i_date_end date default null::date
+                                             , i_day_count int4 default null::int4, i_vacation_gid bigint default null::bigint)
  RETURNS text
  LANGUAGE plpgsql
  VOLATILE SECURITY DEFINER COST 1
@@ -877,7 +840,8 @@ DECLARE
   l_check_user boolean := false;
   l_check_date boolean := false;
   l_check_vacation boolean := false;
-  l_query boolean := false;
+  l_add boolean := false;
+  l_upd boolean := false;
 
   l_user_id bigint := coalesce(i_user_id, 0::bigint);
   l_vacation_gid bigint := coalesce(i_vacation_gid, 0::bigint);
@@ -887,21 +851,29 @@ DECLARE
 BEGIN
 
   l_check_user := ((select count(1) from rmaster.staff as u where u.user_id = l_user_id) = 1);
-  l_check_date := ((select count(1) from rmaster.zmtd_date as d where d.date_gid in (l_date_begin, l_date_end)) = 2);
-  l_check_vacation := ((select count(1) from rmaster.vacation as v where v.user_id = l_user_id and v.vacation_gid = l_vacation_gid) = 1);
+  l_check_date := ((select count(1) from rmaster.zmtd_date as d where d.date_gid in (l_date_begin, l_date_end)) in (1, 2));
 
-  IF l_check_user and l_check_date and l_check_vacation THEN
-    update rmaster.vacation set date_begin = l_date_begin, date_end = l_date_end, update_date = now()
-                          where user_id = l_user_id and vacation_gid = l_vacation_gid;
-    l_query := true;
+  IF l_check_user and l_check_date THEN
+    IF l_vacation_gid = 0 THEN
+      insert into rmaster.vacation (user_id, date_begin, date_end) values (l_user_id, l_date_begin, l_date_end);
+      l_add := true;
+    ELSE
+      l_check_vacation := ((select count(1) from rmaster.vacation as v where v.user_id = l_user_id and v.vacation_gid = l_vacation_gid) = 1);
+      IF l_check_vacation THEN
+        update rmaster.vacation set date_begin = l_date_begin, date_end = l_date_end, update_date = now()
+                              where user_id = l_user_id and vacation_gid = l_vacation_gid;
+        l_upd := true;
+      END IF;
+    END IF;
   END IF;
 
   RETURN (
     SELECT
-      case when l_query then 'Успешно обновлено'
+      case when l_add then 'Успешно добавлен'
+           when l_upd then 'Успешно обновлён'
            when not l_check_user then 'Неизвестный пользователь'
            when not l_check_date then 'Неподходящие даты'
-           when not l_check_vacation then 'Недоступный отпуск'
+           when not l_check_vacation and l_vacation_gid > 0 then 'Недоступный отпуск'
            else 'Не выполнено' end::text as status
     FOR READ ONLY
   );

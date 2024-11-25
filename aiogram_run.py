@@ -4,7 +4,7 @@ import logging
 from create_bot import bot, dp, admins
 from handlers.admin_menu import admin_router
 from handlers.inline_menu import inline_router
-from handlers.start import start_router
+from handlers.group_command import start_router
 from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
 

@@ -74,18 +74,6 @@ async def s_aou_admin(pool: asyncpg.pool.Pool, user_id: int, group_id: int, user
             logger.error(result)
     return result
 
-async def s_add_vacation(pool: asyncpg.pool.Pool, user_id: int, date_begin: datetime.date = None
-                         , date_end: datetime.date = None, day_count: int = None) -> str:
-    result: str
-    async with pool.acquire() as conn:
-        try:
-            result = await conn.fetchval("select * from api.s_add_vacation($1::bigint, $2::date, $3::date, $4::integer);"
-                                         , user_id, date_begin, date_end, day_count)
-        except Exception as e:
-            result = f"Exception s_add_vacation({user_id}, {date_begin}, {date_end}, {day_count}): {e}"
-            logger.error(result)
-    return result
-
 async def s_sod_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: int, operation: str='swap') -> str:
     result: str
     async with pool.acquire() as conn:
@@ -97,15 +85,15 @@ async def s_sod_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: in
             logger.error(result)
     return result
 
-async def s_upd_vacation(pool: asyncpg.pool.Pool, user_id: int, vacation_gid: int
-                       , date_begin: datetime.date = None, date_end: datetime.date = None, day_count: int = None) -> str:
+async def s_aou_vacation(pool: asyncpg.pool.Pool, user_id: int, date_begin: datetime.date = None
+                         , date_end: datetime.date = None, day_count: int = None, vacation_gid: int = None) -> str:
     result: str
     async with pool.acquire() as conn:
         try:
-            result = await conn.fetchval("select * from api.s_upd_vacation($1::bigint, $2::bigint, $3::date, $4::date, $5::integer)"
-                                         , user_id, vacation_gid, date_begin, date_end, day_count)
+            result = await conn.fetchval("select * from api.s_aou_vacation($1::bigint, $2::date, $3::date, $4::integer, $5::bigint)"
+                                         , user_id, date_begin, date_end, day_count, vacation_gid)
         except Exception as e:
-            result = f"Exception s_upd_vacation({user_id}, {vacation_gid}, {date_begin}, {date_end}, {day_count}) exception: {e}"
+            result = f"Exception s_aou_vacation({user_id}, {date_begin}, {date_end}, {day_count}, {vacation_gid}) exception: {e}"
             logger.error(result)
     return result
 
@@ -129,14 +117,15 @@ async def r_myaccount(pool: asyncpg.pool.Pool, user_id: int) -> list[Record]:
             logger.error(f"Exception r_myaccount({user_id}): {e}")
     return result
 
-async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date = None, date_end: datetime.date = None) -> list[Record]:
+async def r_check_period(pool: asyncpg.pool.Pool, date_begin: datetime.date = None, date_end: datetime.date = None
+                         , day_count: int = None) -> list[Record]:
     result: list[Record]
     async with pool.acquire() as conn:
         try:
-            result = await conn.fetch("select * from api.r_check_period($1::date, $2::date)"
-                                         , date_begin, date_end)
+            result = await conn.fetch("select * from api.r_check_period($1::date, $2::date, $3::int4)"
+                                         , date_begin, date_end, day_count)
         except Exception as e:
-            logger.error(f"Exception r_check_period({date_begin}, {date_end}): {e}")
+            logger.error(f"Exception r_check_period({date_begin}, {date_end}, {day_count}): {e}")
     return result
 
 async def r_myvacation(pool: asyncpg.pool.Pool, user_id: int, n_year: int = None) -> list[Record]:

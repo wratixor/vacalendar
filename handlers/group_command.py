@@ -1,5 +1,4 @@
 import logging
-import re
 from datetime import date
 
 import asyncpg
@@ -13,39 +12,12 @@ from keyboards.all_kb import main_kb, mini_kb, private_kb
 from middlewares.db_middleware import DatabaseMiddleware
 from middlewares.qparam_middleware import QParamMiddleware
 import db_utils.db_request as r
+import utils_date as d
 
 start_router = Router()
 start_router.message.middleware(DatabaseMiddleware())
 start_router.message.middleware(QParamMiddleware())
 logger = logging.getLogger(__name__)
-
-isodata = re.compile(r'^\d\d\d\d-\d\d-\d\d$')
-isodata2 = re.compile(r'^\d\d\d\d-\d\d-\d\d \d\d\d\d-\d\d-\d\d$')
-isodata_day = re.compile(r'^\d\d\d\d-\d\d-\d\d \d+$')
-rudata = re.compile(r'^\d\d\.\d\d\.\d\d\d\d$')
-rudata2 = re.compile(r'^\d\d\.\d\d\.\d\d\d\d \d\d\.\d\d\.\d\d\d\d$')
-rudata_day = re.compile(r'^\d\d\.\d\d\.\d\d\d\d \d+$')
-years = re.compile(r'^\d\d\d\d$')
-
-def covert_date(datastring: str) -> date:
-    result: date
-    if isodata.match(datastring):
-        result = date.fromisoformat(datastring)
-    elif rudata.match(datastring):
-        dd = datastring.split('.')
-        result = date(int(dd[2]), int(dd[1]), int(dd[0]))
-    else:
-        result = date.today()
-    return result
-
-def get_year(datastring: str) -> int:
-    result: int = 0
-    if years.match(datastring):
-        result = int(datastring)
-    if result > 2100 or result < 2000:
-        result = date.today().year
-    return result
-
 
 
 @start_router.message(CommandStart())
@@ -87,6 +59,8 @@ async def test(message: Message, command: CommandObject, quname: str, isgroup: b
 async def developer_info(message: Message):
     text: str = (f'Developer: @wratixor @tanatovich'
                  f'\nSite: https://wratixor.ru'
+                 f'\nProject: https://wratixor.ru/projects/vacalendar'
+                 f'\nDonations: https://yoomoney.ru/to/4100118849397169'
                  f'\nGithub: https://github.com/wratixor/vacalendar')
     await message.answer(text)
 
@@ -140,7 +114,7 @@ async def helper(message: Message, isgroup: bool):
 
     answer += (f'\n\n<i>Присоединение к группе доступно в чате группы'
                f', добавление отпусков доступно в приватном чате с ботом.</i>')
-    await message.answer(f'{answer}')
+    await message.answer(answer)
 
 @start_router.message(Command('join'))
 async def join(message: Message, command: CommandObject, db: asyncpg.pool.Pool, quname: str, isgroup: bool, isadmin: bool):
@@ -229,7 +203,7 @@ async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
                        f'|{'◻' if row['user_join'] == 'enable' else '◼'}'
                        f'|{'👑' if row['user_admin'] == 'enable' else '🎓'}'
                        f': {row['chat_name']} - {row['year_vacation_count']}\n')
-    await message.answer(f'{answer}')
+    await message.answer(answer)
 
 @start_router.message(Command('upcoming'))
 async def upcoming(message: Message, command: CommandObject, db: asyncpg.pool.Pool, isgroup: bool):
@@ -237,7 +211,7 @@ async def upcoming(message: Message, command: CommandObject, db: asyncpg.pool.Po
     answer: str = f'<b>Ближайшие отпуска:</b>\n'
     start_date: date or None
     arg = command.args
-    start_date = covert_date(arg) if arg else None
+    start_date = d.covert_date(arg) if arg else None
     if isgroup:
         res = await r.r_upcoming(db, message.chat.id, None, start_date)
         for row in res:
@@ -248,7 +222,7 @@ async def upcoming(message: Message, command: CommandObject, db: asyncpg.pool.Po
         for row in res:
             answer += (f'{row['chat_name']}: {row['visible_name']}'
                        f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
-    await message.answer(f'{answer}')
+    await message.answer(answer)
 
 @start_router.message(Command('cross'))
 async def cross(message: Message, command: CommandObject, db: asyncpg.pool.Pool, isgroup: bool):
@@ -256,7 +230,7 @@ async def cross(message: Message, command: CommandObject, db: asyncpg.pool.Pool,
     answer: str = f'<b>Пересекающиеся отпуска:</b>\n'
     t_year: int or None
     arg = command.args
-    t_year = get_year(arg) if arg else None
+    t_year = d.get_year(arg) if arg else None
     if isgroup:
         res = await r.r_cross(db, message.chat.id, None, t_year)
         for row in res:
@@ -271,7 +245,7 @@ async def cross(message: Message, command: CommandObject, db: asyncpg.pool.Pool,
                        f': {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}'
                        f' X {row['visible_name2']}'
                        f': {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n')
-    await message.answer(f'{answer}')
+    await message.answer(answer)
 
 @start_router.message(Command('all'))
 async def all_list(message: Message, command: CommandObject, db: asyncpg.pool.Pool, isgroup: bool):
@@ -279,7 +253,7 @@ async def all_list(message: Message, command: CommandObject, db: asyncpg.pool.Po
     answer: str = f'<b>Все отпуска:</b>\n'
     t_year: int or None
     arg = command.args
-    t_year = get_year(arg) if arg else None
+    t_year = d.get_year(arg) if arg else None
     if isgroup:
         res = await r.r_all(db, message.chat.id, None, t_year)
         for row in res:
@@ -290,4 +264,6 @@ async def all_list(message: Message, command: CommandObject, db: asyncpg.pool.Po
         for row in res:
             answer += (f'{row['chat_name']}: {row['visible_name']}'
                        f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
-    await message.answer(f'{answer}')
+    await message.answer(answer)
+
+

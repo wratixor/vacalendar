@@ -1,56 +1,53 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, KeyboardButtonPollType, InlineKeyboardMarkup, \
     InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 from create_bot import admins
 
-def admin_kb() -> ReplyKeyboardMarkup:
-    kb_list = [
-            [KeyboardButton(text="/stop"), KeyboardButton(text="/stat")],
-            [KeyboardButton(text="/log"), KeyboardButton(text="🔙 Назад")]
-        ]
-    keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
-        keyboard=kb_list,
-        resize_keyboard=True,
-        one_time_keyboard=True,
-        input_field_placeholder="Админка:"
-    )
-    return keyboard
 
-def main_kb(user_telegram_id: int) -> ReplyKeyboardMarkup:
-    kb_list = [
-        [KeyboardButton(text="Кнопка 1"), KeyboardButton(text="Кнопка 2")],
-        [KeyboardButton(text="Кнопка 3"), KeyboardButton(text="Кнопка 4")]
-    ]
-    if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text="⚙️ Админка")])
-    keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
-        keyboard=kb_list,
-        resize_keyboard=True,
-        one_time_keyboard=True,
-        input_field_placeholder="Воспользуйтесь меню:"
-    )
-    return keyboard
-
-def private_kb(user_telegram_id: int) -> ReplyKeyboardMarkup:
-    kb_list = [
-        [KeyboardButton(text="Дать контакт", request_contact=True), KeyboardButton(text="Создать опрос", request_poll=KeyboardButtonPollType())],
-        [KeyboardButton(text="Кнопка 3"), KeyboardButton(text="Кнопка 4")]
-    ]
-    if user_telegram_id in admins:
-        kb_list.append([KeyboardButton(text="⚙️ Админка")])
-    keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
-        keyboard=kb_list,
-        resize_keyboard=True,
-        one_time_keyboard=True,
-        input_field_placeholder="Воспользуйтесь меню:"
-    )
-    return keyboard
-
-
-def mini_kb()  -> InlineKeyboardMarkup:
+def accept_kb()  -> InlineKeyboardMarkup:
      kb_list = [
-         [InlineKeyboardButton(text="LMK", callback_data='LMK'), InlineKeyboardButton(text="RMK", callback_data='RMK')]
+         [InlineKeyboardButton(text='OK ✅', callback_data='ok')
+             , InlineKeyboardButton(text='Заново ⚠', callback_data='retype')
+             , InlineKeyboardButton(text='Отмена ❌', callback_data='abort')]
      ]
      keyboard = InlineKeyboardMarkup (
          inline_keyboard=kb_list
      )
      return keyboard
+
+def account_kb() -> InlineKeyboardMarkup:
+    kb_list = [
+        [InlineKeyboardButton(text='Сменить отображаемое имя', callback_data='user_rename')]
+        #, [InlineKeyboardButton(text='Сменить цвет', callback_data='abort')]
+    ]
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=kb_list
+    )
+    return keyboard
+
+def vacation_kb(vacations: list) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for row in vacations:
+        builder.row(
+            InlineKeyboardButton(
+                text=f'{row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')} ✏',
+                callback_data=f'vedit_{row['vacation_gid']}'
+            )
+            , InlineKeyboardButton(
+                text=f'{'◻' if row['vac_value'] == 'enable' else '◼'}',
+                callback_data=f'swap_{row['vacation_gid']}'
+            )
+            , InlineKeyboardButton(
+                text=f'🗑❌',
+                callback_data=f'del_{row['vacation_gid']}'
+            )
+        )
+    builder.row(
+        InlineKeyboardButton(
+                text='Добавить новый',
+                callback_data='vacation_add'
+            )
+    )
+    builder.adjust(1)
+    return builder.as_markup()
