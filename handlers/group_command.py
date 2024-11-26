@@ -193,14 +193,14 @@ async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
         for row in res:
             answer += (f'{'U+127965' if row['now_vacation_count'] > 0 else 'U+128188'}'
                        f'|{'U+9723' if row['user_join'] == 'enable' else 'U+9724'}'
-                       f'|{'U+128081' if row['user_admin'] == 'enable' else ' 🎓'}'
+                       f'|{'U+128081' if row['user_admin'] == 'enable' else 'U+127891'}'
                        f': {row['visible_name']} - {row['year_vacation_count']}\n')
     else:
         res = await r.r_status(db, None, message.from_user.id)
         for row in res:
             answer += (f'{'U+127965' if row['now_vacation_count'] > 0 else 'U+128188'}'
                        f'|{'U+9723' if row['user_join'] == 'enable' else 'U+9724'}'
-                       f'|{'U+128081' if row['user_admin'] == 'enable' else ' 🎓'}'
+                       f'|{'U+128081' if row['user_admin'] == 'enable' else 'U+127891'}'
                        f': {row['chat_name']} - {row['year_vacation_count']}\n')
     await message.answer(answer)
 
