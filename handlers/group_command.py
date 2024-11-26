@@ -4,14 +4,14 @@ from datetime import date
 import asyncpg
 from aiogram import Router
 from aiogram.filters import CommandStart, Command, CommandObject
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message
 from asyncpg import Record
 
 from create_bot import bot_url
 from middlewares.db_middleware import DatabaseMiddleware
 from middlewares.qparam_middleware import QParamMiddleware
 import db_utils.db_request as r
-import utils_date as d
+import handlers.utils_date as d
 
 start_router = Router()
 start_router.message.middleware(DatabaseMiddleware())

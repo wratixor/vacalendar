@@ -3,8 +3,8 @@ import logging
 
 from create_bot import bot, dp, admins
 from handlers.admin_menu import admin_router
-from handlers.inline_menu import inline_router
 from handlers.group_command import start_router
+from handlers.user_command import user_router
 from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
 
@@ -57,7 +57,7 @@ async def stop_bot():
 
 async def main():
     dp.include_router(start_router)
-    dp.include_router(inline_router)
+    dp.include_router(user_router)
     dp.include_router(admin_router)
     dp.startup.register(set_all_commands)
     dp.startup.register(set_private_commands)

@@ -90,7 +90,7 @@ async def s_aou_vacation(pool: asyncpg.pool.Pool, user_id: int, date_begin: date
     result: str
     async with pool.acquire() as conn:
         try:
-            result = await conn.fetchval("select * from api.s_aou_vacation($1::bigint, $2::date, $3::date, $4::integer, $5::bigint)"
+            result = await conn.fetchval("select * from api.s_aou_vacation($1::bigint, $2::date, $3::date, $4::int4, $5::bigint)"
                                          , user_id, date_begin, date_end, day_count, vacation_gid)
         except Exception as e:
             result = f"Exception s_aou_vacation({user_id}, {date_begin}, {date_end}, {day_count}, {vacation_gid}) exception: {e}"

@@ -527,6 +527,7 @@ BEGIN
     join rmaster.vacation as v2 on v2.user_id = uc2.user_id and v2.enable_flg = 10
                                and v2.date_begin <= v1.date_end
                                and v2.date_end >= v1.date_begin
+    where ((uc1.user_id = l_user_id or l_user_id = 0) or (uc2.user_id = l_user_id or l_user_id = 0))
     order by v1.date_begin, u1.visible_name
     FOR READ ONLY;
   END IF;

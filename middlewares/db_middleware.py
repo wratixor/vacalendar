@@ -1,8 +1,8 @@
-from typing import Callable, Dict, Any, Awaitable
+from typing import Callable, Dict, Any, Awaitable, Union
 
 import asyncpg
 from aiogram import BaseMiddleware
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from create_bot import pg_link
 
 
@@ -13,7 +13,7 @@ class DatabaseMiddleware(BaseMiddleware):
     async def __call__(
             self,
             handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-            event: Message,
+            event: Union[Message, CallbackQuery],
             data: Dict[str, Any]
     ) -> Any:
         if not self.pool:

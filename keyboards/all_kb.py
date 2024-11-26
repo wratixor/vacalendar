@@ -31,7 +31,7 @@ def vacation_kb(vacations: list) -> InlineKeyboardMarkup:
     for row in vacations:
         builder.row(
             InlineKeyboardButton(
-                text=f'{row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')} ✏',
+                text=f'✏ {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}',
                 callback_data=f'vedit_{row['vacation_gid']}'
             )
             , InlineKeyboardButton(
@@ -49,5 +49,5 @@ def vacation_kb(vacations: list) -> InlineKeyboardMarkup:
                 callback_data='vacation_add'
             )
     )
-    builder.adjust(1)
+
     return builder.as_markup()
