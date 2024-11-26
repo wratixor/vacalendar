@@ -1,7 +1,3 @@
-DROP SCHEMA if exists rmaster cascade;
-CREATE SCHEMA rmaster AUTHORIZATION rmaster;
-
-
 drop table if exists rmaster.zmtd_year cascade;
 CREATE TABLE rmaster.zmtd_year (
 	year_gid integer NOT NULL,
