@@ -1,7 +1,3 @@
-DROP SCHEMA IF EXISTS api cascade;
-CREATE SCHEMA api AUTHORIZATION rmaster;
-
-
 DROP FUNCTION IF EXISTS api.s_aou_user(int8, text, text, text, text, text);
 CREATE OR REPLACE FUNCTION api.s_aou_user(i_user_id bigint, i_first_name text, i_last_name text, i_username text, i_upd_par text default null::text, i_upd_val text default null::text)
  RETURNS text
