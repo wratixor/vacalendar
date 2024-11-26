@@ -1,3 +1,7 @@
+DROP SCHEMA if exists rmaster cascade;
+CREATE SCHEMA rmaster AUTHORIZATION rmaster;
+
+
 drop table if exists rmaster.zmtd_year cascade;
 CREATE TABLE rmaster.zmtd_year (
 	year_gid integer NOT NULL,
@@ -242,14 +246,6 @@ CREATE TABLE rmaster.vacation (
     update_date timestamptz not null default now(),
     CONSTRAINT "vacation$pk" PRIMARY KEY (vacation_gid)
 );
-
-drop index if exists vacation_date_idx;
-CREATE UNIQUE INDEX vacation_date_idx
-ON vacation USING btree (date_begin, date_end);
-
-drop index if exists vacation_user_idx;
-CREATE UNIQUE INDEX vacation_user_idx
-ON vacation USING btree (user_id);
 
 
 drop table if exists rmaster.admin_department cascade;
