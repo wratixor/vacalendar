@@ -31,16 +31,16 @@ def vacation_kb(vacations: list) -> InlineKeyboardMarkup:
     for row in vacations:
         builder.row(
             InlineKeyboardButton(
-                text=f'✏ {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}',
-                callback_data=f'vedit_{row['vacation_gid']}'
+                text=f"✏ {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}",
+                callback_data=f"vedit_{row['vacation_gid']}"
             )
             , InlineKeyboardButton(
-                text=f'{'◻' if row['vac_value'] == 'enable' else '◼'}',
-                callback_data=f'swap_{row['vacation_gid']}'
+                text='◻' if row['vac_value'] == 'enable' else '◼',
+                callback_data=f"swap_{row['vacation_gid']}"
             )
             , InlineKeyboardButton(
-                text=f'🗑❌',
-                callback_data=f'del_{row['vacation_gid']}'
+                text='🗑❌',
+                callback_data=f"del_{row['vacation_gid']}"
             )
         )
     builder.row(
