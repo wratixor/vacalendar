@@ -44,15 +44,15 @@ async def account(message: Message, db: asyncpg.pool.Pool, quname: str, isgroup:
     else:
         res: list[Record] = await r.r_myaccount(db, message.from_user.id)
         row = res[0]
-        answer += (f'<b>Имя:</b> {row['first_name']}\n'
-                   f'<b>Фамилия:</b> {row['last_name']}\n'
-                   f'<b>Логин:</b> {row['username']}\n'
-                   f'<b>Отображаемое имя:</b> {row['visible_name']}\n'
-                   f'<b>Цвет:</b> {bytes(row['color']).hex()}\n'
-                   f'<b>Добавлен:</b> {row['start_date']}\n'
-                   f'<b>Обновлено:</b> {row['update_date']}\n'
-                   f'<b>Группы:</b> 👑 {row['enable_admin_count']} '
-                   f'/ ◻ {row['enable_chat_count']} / {row['chat_count']}')
+        answer += (f"<b>Имя:</b> {row['first_name']}\n"
+                   f"<b>Фамилия:</b> {row['last_name']}\n"
+                   f"<b>Логин:</b> {row['username']}\n"
+                   f"<b>Отображаемое имя:</b> {row['visible_name']}\n"
+                   f"<b>Цвет:</b> {bytes(row['color']).hex()}\n"
+                   f"<b>Добавлен:</b> {row['start_date']}\n"
+                   f"<b>Обновлено:</b> {row['update_date']}\n"
+                   f"<b>Группы:</b> 👑 {row['enable_admin_count']} "
+                   f"/ ◻ {row['enable_chat_count']} / {row['chat_count']}")
         await message.answer(answer, reply_markup=account_kb())
 
 @user_router.message(Command('vacation'))
@@ -78,10 +78,10 @@ async def check_period(state: FSMContext, db: asyncpg.pool.Pool) -> str:
     day_count: int = data['day_count']
     res: list[Record] = await r.r_check_period(db, date_start, date_end, day_count)
     row = res[0]
-    periodinfo: str = (f'C {row['date_begin'].strftime('%d.%m.%Y')} по {row['date_end'].strftime('%d.%m.%Y')}\n'
-                       f'Дней: {row['day_count']}\n'
-                       f'Рабочих: {row['workday_count']}\n'
-                       f'Праздничных: {row['holyday_count']}\n')
+    periodinfo: str = (f"C {row['date_begin'].strftime('%d.%m.%Y')} по {row['date_end'].strftime('%d.%m.%Y')}\n"
+                       f"Дней: {row['day_count']}\n"
+                       f"Рабочих: {row['workday_count']}\n"
+                       f"Праздничных: {row['holyday_count']}\n")
     return periodinfo
 
 @user_router.message(Command('add'))

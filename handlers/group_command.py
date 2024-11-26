@@ -214,13 +214,13 @@ async def upcoming(message: Message, command: CommandObject, db: asyncpg.pool.Po
     if isgroup:
         res = await r.r_upcoming(db, message.chat.id, None, start_date)
         for row in res:
-            answer += (f'{row['username']}'
-                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+            answer += (f"{row['username']}"
+                       f": {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n")
     else:
         res = await r.r_upcoming(db, None, message.from_user.id, start_date)
         for row in res:
-            answer += (f'{row['chat_name']}: {row['visible_name']}'
-                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+            answer += (f"{row['chat_name']}: {row['visible_name']}"
+                       f": {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n")
     await message.answer(answer)
 
 @start_router.message(Command('cross'))
@@ -233,17 +233,17 @@ async def cross(message: Message, command: CommandObject, db: asyncpg.pool.Pool,
     if isgroup:
         res = await r.r_cross(db, message.chat.id, None, t_year)
         for row in res:
-            answer += (f'{row['username1']}'
-                       f': {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}'
-                       f' X {row['username2']}'
-                       f': {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n')
+            answer += (f"{row['username1']}"
+                       f": {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}"
+                       f" X {row['username2']}"
+                       f": {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n")
     else:
         res = await r.r_cross(db, None, message.from_user.id, t_year)
         for row in res:
-            answer += (f'{row['chat_name']}: {row['visible_name1']}'
-                       f': {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}'
-                       f' X {row['visible_name2']}'
-                       f': {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n')
+            answer += (f"{row['chat_name']}: {row['visible_name1']}"
+                       f": {row['date_begin1'].strftime('%d.%m.%Y')} - {row['date_end1'].strftime('%d.%m.%Y')}"
+                       f" X {row['visible_name2']}"
+                       f": {row['date_begin2'].strftime('%d.%m.%Y')} - {row['date_end2'].strftime('%d.%m.%Y')}\n")
     await message.answer(answer)
 
 @start_router.message(Command('all'))
@@ -256,13 +256,13 @@ async def all_list(message: Message, command: CommandObject, db: asyncpg.pool.Po
     if isgroup:
         res = await r.r_all(db, message.chat.id, None, t_year)
         for row in res:
-            answer += (f'{row['username']}'
-                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+            answer += (f"{row['username']}"
+                       f": {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n")
     else:
         res = await r.r_all(db, None, message.from_user.id, t_year)
         for row in res:
-            answer += (f'{row['chat_name']}: {row['visible_name']}'
-                       f': {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n')
+            answer += (f"{row['chat_name']}: {row['visible_name']}"
+                       f": {row['date_begin'].strftime('%d.%m.%Y')} - {row['date_end'].strftime('%d.%m.%Y')}\n")
     await message.answer(answer)
 
 
