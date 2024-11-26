@@ -19,4 +19,7 @@
 - Run <code>db_utils/reinit_tables.sql</code> into PostgreSQL CLI<br>
 - Run <code>db_utils/datafixes.sql</code> into PostgreSQL CLI<br>
 - Run <code>db_utils/reinit_api.sql</code> into PostgreSQL CLI<br>
-
+- Edit bot.service<br>
+- <code>ln -s /../bot.service /etc/systemd/system</code><br>
+- <code>systemctl enable bot.service</code><br>
+- <code>systemctl start bot.service</code><br>

@@ -1,0 +1,15 @@
+[Unit]
+Description=vacalendar
+After=multi-user.target
+ 
+[Service]
+User=root
+Group=root
+Type=simple
+Restart=always
+RestartSec=5
+WorkingDirectory=/var/www/wratixor.ru/vacalendar
+ExecStart=/var/www/wratixor.ru/vacalendar/.venv/bin/python3 /var/www/wratixor.ru/vacalendar/aiogram_run.py
+ 
+[Install]
+WantedBy=multi-user.target
