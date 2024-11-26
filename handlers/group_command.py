@@ -2,13 +2,12 @@ import logging
 from datetime import date
 
 import asyncpg
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message, ReplyKeyboardRemove
 from asyncpg import Record
 
 from create_bot import bot_url
-from keyboards.all_kb import main_kb, mini_kb, private_kb
 from middlewares.db_middleware import DatabaseMiddleware
 from middlewares.qparam_middleware import QParamMiddleware
 import db_utils.db_request as r
