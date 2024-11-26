@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-# -*- Coding: utf-8 -*-
-
 import asyncio
 import logging
 
