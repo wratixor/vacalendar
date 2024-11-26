@@ -194,14 +194,14 @@ async def status(message: Message, db: asyncpg.pool.Pool, isgroup: bool):
             answer += '🏝' if row['now_vacation_count'] > 0 else '💼'
             answer += '|' + '◻' if row['user_join'] == 'enable' else '◼'
             answer += '|' + '👑' if row['user_admin'] == 'enable' else '🎓'
-            answer += f': {row['visible_name']} - {row['year_vacation_count']}\n'
+            answer += f": {row['visible_name']} - {row['year_vacation_count']}\n"
     else:
         res = await r.r_status(db, None, message.from_user.id)
         for row in res:
             answer += '🏝' if row['now_vacation_count'] > 0 else '💼'
             answer += '|' + '◻' if row['user_join'] == 'enable' else '◼'
             answer += '|' + '👑' if row['user_admin'] == 'enable' else '🎓'
-            answer += f': {row['chat_name']} - {row['year_vacation_count']}\n'
+            answer += f": {row['chat_name']} - {row['year_vacation_count']}\n"
     await message.answer(answer)
 
 @start_router.message(Command('upcoming'))
